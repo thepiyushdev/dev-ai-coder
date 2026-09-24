@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexusCode AI | Intelligent Developer Assistant</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    body { background-color: #030712; }
+    .scrollbar-thin::-webkit-scrollbar { width: 4px; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    pre { background: #0b1120 !important; padding: 1rem; border-radius: 0.5rem; border: 1px solid #1e293b; overflow-x: auto; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.875rem; color: #38bdf8; }
+    .prose p { margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body class="text-slate-100 flex h-screen overflow-hidden antialiased">
+
+  <!-- Sidebar (Chat History - Last 50 Sessions) -->
+  <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 bg-[#060b18] border-r border-slate-800/80 flex flex-col transition-transform duration-300 -translate-x-full md:translate-x-0 md:static">
+    <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-lg bg-sky-500/20 border border-sky-400 flex items-center justify-center text-sky-400">
+          <i class="fas fa-terminal text-xs"></i>
+        </div>
+        <span class="font-bold text-white tracking-wide">NexusCode<span class="text-sky-400">.ai</span></span>
+      </div>
+      <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- New Chat Button -->
+    <div class="p-3">
+      <button onclick="createNewChat()" class="w-full py-2.5 px-4 rounded-xl bg-sky-600/20 hover:bg-sky-600/30 border border-sky-500/40 text-sky-300 font-medium flex items-center justify-center gap-2 transition">
+        <i class="fas fa-plus text-xs"></i> New Coding Session
+      </button>
+    </div>
+
+    <!-- History List -->
+    <div class="flex-1 overflow-y-auto p-3 space-y-1 scrollbar-thin" id="history-list">
+      <!-- Chat history items inject dynamically -->
+    </div>
+
+    <!-- Sidebar Footer / Settings -->
+    <div class="p-4 border-t border-slate-800 space-y-2">
+      <button onclick="openSettingsModal()" class="w-full py-2 px-3 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs text-slate-300 flex items-center justify-between transition border border-slate-800">
+        <span class="flex items-center gap-2"><i class="fas fa-key text-sky-400"></i> Gemini API Key</span>
+        <span id="key-status-dot" class="w-2 h-2 rounded-full bg-red-400"></span>
+      </button>
+      <div class="text-[11px] text-slate-500 text-center">Coder Multimodal • Max 50 Sessions</div>
+    </div>
+  </aside>
+
+  <!-- Main Chat Area -->
+  <main class="flex-1 flex flex-col bg-[#030712] relative overflow-hidden">
+    <!-- Top Header -->
+    <header class="h-14 border-b border-slate-800 flex items-center justify-between px-4 bg-slate-950/40 backdrop-blur-md">
+      <div class="flex items-center gap-3">
+        <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white">
+          <i class="fas fa-bars"></i>
+        </button>
+        <h2 id="current-chat-title" class="text-sm font-semibold text-slate-200 truncate max-w-xs sm:max-w-md">New Session</h2>
+      </div>
+      <button onclick="clearCurrentChat()" title="Clear Chat" class="text-xs text-slate-400 hover:text-red-400 transition">
+        <i class="fas fa-trash-alt mr-1"></i> Clear
+      </button>
+    </header>
+
+    <!-- Message Arena -->
+    <div id="messages-container" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 scrollbar-thin">
+      <!-- Welcome Empty State -->
+      <div id="welcome-state" class="h-full flex flex-col items-center justify-center text-center space-y-4 max-w-md mx-auto my-auto">
+        <div class="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 text-2xl shadow-lg shadow-sky-500/10">
+          <i class="fas fa-code"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white">NexusCode Developer Assistant</h3>
+        <p class="text-sm text-slate-400">Ask coding problems, review architectures, or upload screenshots of UI/bugs for immediate multimodal analysis.</p>
+      </div>
+    </div>
+
+    <!-- Bottom Input Deck -->
+    <footer class="p-3 sm:p-4 bg-slate-950/80 border-t border-slate-800">
+      <div class="max-w-4xl mx-auto space-y-2">
+        <!-- Image Preview Bar (If attached) -->
+        <div id="image-preview-container" class="hidden flex items-center gap-2 bg-slate-900 border border-slate-800 p-2 rounded-lg w-max">
+          <img id="image-preview" src="" alt="attachment" class="h-12 w-12 object-cover rounded">
+          <span id="image-name" class="text-xs text-slate-300 max-w-[150px] truncate"></span>
+          <button onclick="removeAttachedImage()" class="text-slate-400 hover:text-red-400 text-xs ml-2"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="flex items-end gap-2 bg-slate-900/90 border border-slate-800 rounded-2xl p-2 focus-within:border-sky-500/70 transition">
+          <label class="cursor-pointer p-2.5 text-slate-400 hover:text-sky-400 transition rounded-xl hover:bg-slate-800/80">
+            <i class="fas fa-image"></i>
+            <input type="file" id="media-input" accept="image/*" class="hidden" onchange="handleImageSelection(event)">
+          </label>
+
+          <textarea id="prompt-input" rows="1" placeholder="Describe the problem, ask for code, or paste snippets..." class="flex-1 bg-transparent text-sm text-slate-100 placeholder-slate-500 resize-none outline-none py-2.5 max-h-32 scrollbar-thin"></textarea>
+
+          <button id="send-btn" onclick="sendMessage()" class="p-2.5 px-3.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-xl transition shadow-lg shadow-sky-500/20 active:scale-95">
+            <i class="fas fa-paper-plane text-xs"></i>
+          </button>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- API Key Modal -->
+  <div id="api-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4">
+      <h3 class="text-lg font-bold text-white flex items-center gap-2">
+        <i class="fas fa-shield-alt text-sky-400"></i> Configure Gemini API Key
+      </h3>
+      <p class="text-xs text-slate-400">Your API key is stored strictly inside your browser's LocalStorage and is sent directly to Google Gemini servers.</p>
+      <input type="password" id="api-key-input" placeholder="AIzaSy..." class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white outline-none focus:border-sky-400">
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeSettingsModal()" class="px-4 py-2 rounded-lg text-slate-400 hover:text-white text-xs">Cancel</button>
+        <button onclick="saveApiKey()" class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-bold">Save Key</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State Management
+    let chats = JSON.parse(localStorage.getItem('nexus_chats') || '[]');
+    let currentChatId = localStorage.getItem('nexus_current_chat') || null;
+    let currentImageBase64 = null;
+
+    function saveChatsToStorage() {
+      // Limit to 50 sessions
+      if (chats.length > 50) chats = chats.slice(0, 50);
+      localStorage.setItem('nexus_chats', JSON.stringify(chats));
+    }
+
+    function checkApiKey() {
+      const key = localStorage.getItem('nexus_gemini_key');
+      const dot = document.getElementById('key-status-dot');
+      if (key && key.trim().length > 10) {
+        dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+      } else {
+        dot.className = "w-2 h-2 rounded-full bg-red-400";
+      }
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('-translate-x-full');
+    }
+
+    function openSettingsModal() {
+      document.getElementById('api-key-input').value = localStorage.getItem('nexus_gemini_key') || '';
+      document.getElementById('api-modal').classList.remove('hidden');
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('api-modal').classList.add('hidden');
+    }
+
+    function saveApiKey() {
+      const key = document.getElementById('api-key-input').value.trim();
+      localStorage.setItem('nexus_gemini_key', key);
+      checkApiKey();
+      closeSettingsModal();
+    }
+
+    function handleImageSelection(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        currentImageBase64 = evt.target.result;
+        document.getElementById('image-preview').src = currentImageBase64;
+        document.getElementById('image-name').textContent = file.name;
+        document.getElementById('image-preview-container').classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeAttachedImage() {
+      currentImageBase64 = null;
+      document.getElementById('media-input').value = '';
+      document.getElementById('image-preview-container').classList.add('hidden');
+    }
+
+    function createNewChat() {
+      const newChat = {
+        id: Date.now().toString(),
+        title: 'New Coding Session',
+        messages: []
+      };
+      chats.unshift(newChat);
+      currentChatId = newChat.id;
+      saveChatsToStorage();
+      renderHistoryList();
+      renderMessages();
+      if (window.innerWidth < 768) toggleSidebar();
+    }
+
+    function renderHistoryList() {
+      const list = document.getElementById('history-list');
+      list.innerHTML = '';
+      chats.forEach(chat => {
+        const item = document.createElement('div');
+        const isActive = chat.id === currentChatId;
+        item.className = `group flex items-center justify-between p-2.5 rounded-xl cursor-pointer text-xs transition ${
+          isActive ? 'bg-sky-500/10 text-sky-300 border border-sky-500/30' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
+        }`;
+        item.innerHTML = `
+          <div class="flex items-center gap-2 truncate flex-1" onclick="switchChat('${chat.id}')">
+            <i class="far fa-message text-[10px]"></i>
+            <span class="truncate">${chat.title}</span>
+          </div>
+          <button onclick="deleteChat(event, '${chat.id}')" class="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 p-1">
+            <i class="fas fa-trash-alt text-[10px]"></i>
+          </button>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function switchChat(id) {
+      currentChatId = id;
+      localStorage.setItem('nexus_current_chat', id);
+      renderHistoryList();
+      renderMessages();
+      if (window.innerWidth < 768) toggleSidebar();
+    }
+
+    function deleteChat(e, id) {
+      e.stopPropagation();
+      chats = chats.filter(c => c.id !== id);
+      if (currentChatId === id) {
+        currentChatId = chats.length > 0 ? chats[0].id : null;
+      }
+      saveChatsToStorage();
+      renderHistoryList();
+      renderMessages();
+    }
+
+    function renderMessages() {
+      const container = document.getElementById('messages-container');
+      const welcome = document.getElementById('welcome-state');
+      const chat = chats.find(c => c.id === currentChatId);
+
+      if (!chat || chat.messages.length === 0) {
+        container.innerHTML = '';
+        container.appendChild(welcome);
+        welcome.classList.remove('hidden');
+        document.getElementById('current-chat-title').textContent = 'New Session';
+        return;
+      }
+
+      welcome.classList.add('hidden');
+      container.innerHTML = '';
+      document.getElementById('current-chat-title').textContent = chat.title;
+
+      chat.messages.forEach(msg => {
+        const wrap = document.createElement('div');
+        wrap.className = `flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`;
+
+        const box = document.createElement('div');
+        box.className = `max-w-2xl rounded-2xl p-4 text-sm ${
+          msg.role === 'user' 
+            ? 'bg-sky-600 text-white rounded-tr-none' 
+            : 'bg-slate-900/90 border border-slate-800 text-slate-200 rounded-tl-none prose'
+        }`;
+
+        let imgHtml = msg.image ? `<img src="${msg.image}" class="max-h-48 rounded-lg mb-2 border border-slate-700">` : '';
+        box.innerHTML = imgHtml + (msg.role === 'user' ? msg.content : marked.parse(msg.content));
+        wrap.appendChild(box);
+        container.appendChild(wrap);
+      });
+      container.scrollTop = container.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const promptInput = document.getElementById('prompt-input');
+      const text = promptInput.value.trim();
+      const apiKey = localStorage.getItem('nexus_gemini_key');
+
+      if (!apiKey) {
+        openSettingsModal();
+        return;
+      }
+      if (!text && !currentImageBase64) return;
+
+      if (!currentChatId) {
+        createNewChat();
+      }
+
+      const activeChat = chats.find(c => c.id === currentChatId);
+      const userMsg = {
+        role: 'user',
+        content: text,
+        image: currentImageBase64
+      };
+
+      activeChat.messages.push(userMsg);
+      if (activeChat.messages.length === 1 && text) {
+        activeChat.title = text.slice(0, 30) + '...';
+      }
+
+      promptInput.value = '';
+      const sentImage = currentImageBase64;
+      removeAttachedImage();
+      renderMessages();
+
+      // Calling Gemini API
+      try {
+        const payloadParts = [];
+        if (sentImage) {
+          const base64Data = sentImage.split(',')[1];
+          const mimeType = sentImage.substring(sentImage.indexOf(':') + 1, sentImage.indexOf(';'));
+          payloadParts.push({ inline_data: { mime_type: mimeType, data: base64Data } });
+        }
+        if (text) {
+          payloadParts.push({ text: "You are NexusCode AI, an expert coding assistant. Provide clean, production-grade code with markdown formatting.\n\n" + text });
+        }
+
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: payloadParts }] })
+        });
+
+        const data = await res.json();
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Error: Unable to generate code response.";
+
+        activeChat.messages.push({
+          role: 'model',
+          content: reply
+        });
+      } catch (err) {
+        activeChat.messages.push({
+          role: 'model',
+          content: "Network error while connecting to Gemini API. Check your API key and connection."
+        });
+      }
+
+      saveChatsToStorage();
+      renderHistoryList();
+      renderMessages();
+    }
+
+    function clearCurrentChat() {
+      if (!currentChatId) return;
+      const chat = chats.find(c => c.id === currentChatId);
+      if (chat) {
+        chat.messages = [];
+        saveChatsToStorage();
+        renderMessages();
+      }
+    }
+
+    // Auto-expand textarea
+    const textarea = document.getElementById('prompt-input');
+    textarea.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+    });
+    textarea.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Init
+    checkApiKey();
+    if (chats.length === 0) createNewChat();
+    else {
+      currentChatId = chats[0].id;
+      renderHistoryList();
+      renderMessages();
+    }
+  </script>
+</body>
+</html>
