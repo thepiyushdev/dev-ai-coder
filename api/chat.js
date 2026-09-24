@@ -3,9 +3,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || req.body.fallbackKey;
   if (!apiKey) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY environment variable is not configured.' });
+    return res.status(500).json({ error: 'GEMINI_API_KEY environment variable is missing on Vercel.' });
   }
 
   const { prompt, imageBase64, mimeType } = req.body;
@@ -13,7 +13,6 @@ export default async function handler(req, res) {
   try {
     const parts = [];
 
-    // Multimodal image support
     if (imageBase64 && mimeType) {
       parts.push({
         inline_data: {
@@ -23,20 +22,30 @@ export default async function handler(req, res) {
       });
     }
 
-    // System instruction + user prompt for coding
-    const systemPrompt = "You are NexusCode AI, an elite software architect and coding assistant. Write clean, production-ready, secure, and bug-free code. Format all code blocks with appropriate language tags in markdown. If analyzing images/UI/errors, pinpoint issues directly and provide corrected code.";
-    
-    parts.push({ text: `${systemPrompt}\n\nUser Query: ${prompt || "Analyze the provided image."}` });
+    const systemInstruction = `You are NexusCode AI, an elite programmer and software architect.
+Always structure your answers cleanly:
+1. First, provide a brief 'Thinking & Approach' breakdown.
+2. Provide clean, well-commented, production-ready code with exact markdown tags.
+3. Provide a quick explanation of the logic or complexity calculation.`;
 
-    // Call Gemini 2.5 Flash (with fallback to 2.0-flash / 1.5-flash if needed)
-    const model = 'gemini-2.5-flash';
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+    parts.push({ text: `${systemInstruction}\n\nUser Question:\n${prompt || "Analyze this code/image in detail."}` });
+
+    // Using gemini-2.5-flash with fallback to 1.5-flash
+    let model = 'gemini-2.5-flash';
+    let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: parts }]
-      })
+      body: JSON.stringify({ contents: [{ parts: parts }] })
     });
+
+    if (!response.ok) {
+      model = 'gemini-1.5-flash';
+      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: parts }] })
+      });
+    }
 
     const data = await response.json();
 
@@ -48,6 +57,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ reply });
 
   } catch (error) {
-    return res.status(500).json({ error: 'Server error processing request: ' + error.message });
+    return res.status(500).json({ error: 'Server error: ' + error.message });
   }
 }
