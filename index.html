@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NexusCode AI | Intelligent Developer Assistant</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NexusCode AI | Gemini 2.5 Flash Assistant</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -11,162 +11,140 @@
     body { background-color: #030712; }
     .scrollbar-thin::-webkit-scrollbar { width: 4px; }
     .scrollbar-thin::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
-    pre { background: #0b1120 !important; padding: 1rem; border-radius: 0.5rem; border: 1px solid #1e293b; overflow-x: auto; margin-top: 0.5rem; margin-bottom: 0.5rem; }
-    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.875rem; color: #38bdf8; }
-    .prose p { margin-bottom: 0.5rem; }
+    pre { background: #070d1a !important; padding: 1rem; border-radius: 0.75rem; border: 1px solid #1e3a8a; overflow-x: auto; margin: 0.75rem 0; position: relative; }
+    code { font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 0.85rem; color: #38bdf8; }
+    .prose p { margin-bottom: 0.5rem; line-height: 1.6; }
+    .prose ul { list-style-type: disc; padding-left: 1.25rem; margin-bottom: 0.5rem; }
+    .neon-border { box-shadow: 0 0 15px rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); }
   </style>
 </head>
-<body class="text-slate-100 flex h-screen overflow-hidden antialiased">
+<body class="text-slate-100 flex h-[100dvh] overflow-hidden antialiased bg-[#030712]">
 
-  <!-- Sidebar (Chat History - Last 50 Sessions) -->
-  <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 bg-[#060b18] border-r border-slate-800/80 flex flex-col transition-transform duration-300 -translate-x-full md:translate-x-0 md:static">
-    <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <div class="w-7 h-7 rounded-lg bg-sky-500/20 border border-sky-400 flex items-center justify-center text-sky-400">
-          <i class="fas fa-terminal text-xs"></i>
+  <!-- Mobile Backdrop Overlay -->
+  <div id="backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 z-30 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
+
+  <!-- Sidebar (Last 50 Sessions Drawer) -->
+  <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 sm:w-80 bg-[#050914] border-r border-slate-800/80 flex flex-col transition-transform duration-300 -translate-x-full md:translate-x-0 md:static">
+    <div class="p-4 border-b border-slate-800/80 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-400/40 flex items-center justify-center text-sky-400">
+          <i class="fas fa-bolt text-sm"></i>
         </div>
-        <span class="font-bold text-white tracking-wide">NexusCode<span class="text-sky-400">.ai</span></span>
+        <div>
+          <span class="font-bold text-white text-sm tracking-wide">NexusCode</span>
+          <span class="text-[10px] block text-sky-400 font-mono leading-none">Gemini 2.5 Flash</span>
+        </div>
       </div>
-      <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white">
+      <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white p-1">
         <i class="fas fa-times"></i>
       </button>
     </div>
 
-    <!-- New Chat Button -->
+    <!-- New Session Button -->
     <div class="p-3">
-      <button onclick="createNewChat()" class="w-full py-2.5 px-4 rounded-xl bg-sky-600/20 hover:bg-sky-600/30 border border-sky-500/40 text-sky-300 font-medium flex items-center justify-center gap-2 transition">
-        <i class="fas fa-plus text-xs"></i> New Coding Session
+      <button onclick="createNewChat()" class="w-full py-2.5 px-4 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 font-medium text-xs flex items-center justify-center gap-2 transition active:scale-98">
+        <i class="fas fa-plus"></i> New Coding Chat
       </button>
     </div>
 
-    <!-- History List -->
-    <div class="flex-1 overflow-y-auto p-3 space-y-1 scrollbar-thin" id="history-list">
-      <!-- Chat history items inject dynamically -->
-    </div>
+    <!-- 50 Chat Session History List -->
+    <div class="flex-1 overflow-y-auto px-3 py-1 space-y-1 scrollbar-thin" id="history-list"></div>
 
-    <!-- Sidebar Footer / Settings -->
-    <div class="p-4 border-t border-slate-800 space-y-2">
-      <button onclick="openSettingsModal()" class="w-full py-2 px-3 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs text-slate-300 flex items-center justify-between transition border border-slate-800">
-        <span class="flex items-center gap-2"><i class="fas fa-key text-sky-400"></i> Gemini API Key</span>
-        <span id="key-status-dot" class="w-2 h-2 rounded-full bg-red-400"></span>
-      </button>
-      <div class="text-[11px] text-slate-500 text-center">Coder Multimodal • Max 50 Sessions</div>
+    <!-- Footer Stats -->
+    <div class="p-3 border-t border-slate-800/80 text-center">
+      <div class="text-[11px] text-slate-500 flex items-center justify-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Serverless API Connected
+      </div>
     </div>
   </aside>
 
-  <!-- Main Chat Area -->
-  <main class="flex-1 flex flex-col bg-[#030712] relative overflow-hidden">
-    <!-- Top Header -->
-    <header class="h-14 border-b border-slate-800 flex items-center justify-between px-4 bg-slate-950/40 backdrop-blur-md">
+  <!-- Main Chat Workspace -->
+  <main class="flex-1 flex flex-col h-[100dvh] bg-[#02050e] relative overflow-hidden">
+    <!-- Top Bar -->
+    <header class="h-14 border-b border-slate-800/80 flex items-center justify-between px-4 bg-slate-950/60 backdrop-blur-md z-20">
       <div class="flex items-center gap-3">
-        <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white">
-          <i class="fas fa-bars"></i>
+        <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-sky-400 p-1.5 rounded-lg border border-slate-800">
+          <i class="fas fa-bars text-sm"></i>
         </button>
-        <h2 id="current-chat-title" class="text-sm font-semibold text-slate-200 truncate max-w-xs sm:max-w-md">New Session</h2>
+        <h2 id="current-chat-title" class="text-xs sm:text-sm font-semibold text-slate-200 truncate max-w-[200px] sm:max-w-md">New Session</h2>
       </div>
-      <button onclick="clearCurrentChat()" title="Clear Chat" class="text-xs text-slate-400 hover:text-red-400 transition">
-        <i class="fas fa-trash-alt mr-1"></i> Clear
-      </button>
+      <div class="flex items-center gap-2">
+        <button onclick="clearCurrentChat()" class="text-xs text-slate-400 hover:text-red-400 transition px-2.5 py-1 rounded-lg border border-slate-800 hover:border-red-500/40">
+          <i class="fas fa-trash-alt mr-1"></i> Clear
+        </button>
+      </div>
     </header>
 
     <!-- Message Arena -->
-    <div id="messages-container" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 scrollbar-thin">
-      <!-- Welcome Empty State -->
-      <div id="welcome-state" class="h-full flex flex-col items-center justify-center text-center space-y-4 max-w-md mx-auto my-auto">
-        <div class="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 text-2xl shadow-lg shadow-sky-500/10">
-          <i class="fas fa-code"></i>
+    <div id="messages-container" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 scrollbar-thin">
+      <!-- Empty State -->
+      <div id="welcome-state" class="h-full flex flex-col items-center justify-center text-center space-y-4 max-w-md mx-auto my-auto py-12">
+        <div class="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-400/30 flex items-center justify-center text-sky-400 text-2xl shadow-lg shadow-sky-500/10">
+          <i class="fas fa-laptop-code"></i>
         </div>
-        <h3 class="text-xl font-bold text-white">NexusCode Developer Assistant</h3>
-        <p class="text-sm text-slate-400">Ask coding problems, review architectures, or upload screenshots of UI/bugs for immediate multimodal analysis.</p>
+        <h3 class="text-lg sm:text-xl font-bold text-white">NexusCode Developer Assistant</h3>
+        <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
+          Ask code questions, debug errors, or upload screenshots of UI mockups & stack traces for instant multimodal analysis.
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full pt-2">
+          <button onclick="fillPrompt('Explain time complexity of quicksort with python code')" class="p-2.5 rounded-xl border border-slate-800 bg-slate-900/50 hover:border-sky-500/40 text-left text-xs text-slate-300 transition">
+            ⚡ QuickSort in Python
+          </button>
+          <button onclick="fillPrompt('Write a clean responsive navigation bar in Tailwind CSS')" class="p-2.5 rounded-xl border border-slate-800 bg-slate-900/50 hover:border-sky-500/40 text-left text-xs text-slate-300 transition">
+            🎨 Tailwind Nav Layout
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Bottom Input Deck -->
-    <footer class="p-3 sm:p-4 bg-slate-950/80 border-t border-slate-800">
+    <!-- Bottom Input Deck (Mobile Keyboard Friendly) -->
+    <footer class="p-3 sm:p-4 bg-[#050914] border-t border-slate-800/80 z-20">
       <div class="max-w-4xl mx-auto space-y-2">
-        <!-- Image Preview Bar (If attached) -->
-        <div id="image-preview-container" class="hidden flex items-center gap-2 bg-slate-900 border border-slate-800 p-2 rounded-lg w-max">
-          <img id="image-preview" src="" alt="attachment" class="h-12 w-12 object-cover rounded">
-          <span id="image-name" class="text-xs text-slate-300 max-w-[150px] truncate"></span>
-          <button onclick="removeAttachedImage()" class="text-slate-400 hover:text-red-400 text-xs ml-2"><i class="fas fa-times"></i></button>
+        <!-- Image Preview Bar -->
+        <div id="image-preview-container" class="hidden flex items-center gap-2 bg-slate-900 border border-sky-500/30 p-2 rounded-xl w-max">
+          <img id="image-preview" src="" alt="preview" class="h-10 w-10 object-cover rounded-lg border border-slate-700">
+          <span id="image-name" class="text-xs text-sky-300 max-w-[150px] truncate"></span>
+          <button onclick="removeAttachedImage()" class="text-slate-400 hover:text-red-400 p-1"><i class="fas fa-times text-xs"></i></button>
         </div>
 
-        <div class="flex items-end gap-2 bg-slate-900/90 border border-slate-800 rounded-2xl p-2 focus-within:border-sky-500/70 transition">
-          <label class="cursor-pointer p-2.5 text-slate-400 hover:text-sky-400 transition rounded-xl hover:bg-slate-800/80">
-            <i class="fas fa-image"></i>
+        <div class="flex items-end gap-2 bg-slate-900/80 border border-slate-800 rounded-2xl p-1.5 focus-within:border-sky-500/70 transition">
+          <label class="cursor-pointer p-2.5 text-slate-400 hover:text-sky-400 transition rounded-xl hover:bg-slate-800/80 flex items-center justify-center">
+            <i class="fas fa-image text-sm"></i>
             <input type="file" id="media-input" accept="image/*" class="hidden" onchange="handleImageSelection(event)">
           </label>
 
-          <textarea id="prompt-input" rows="1" placeholder="Describe the problem, ask for code, or paste snippets..." class="flex-1 bg-transparent text-sm text-slate-100 placeholder-slate-500 resize-none outline-none py-2.5 max-h-32 scrollbar-thin"></textarea>
+          <textarea id="prompt-input" rows="1" placeholder="Ask coding problem or paste bug..." class="flex-1 bg-transparent text-sm text-slate-100 placeholder-slate-500 resize-none outline-none py-2.5 max-h-32 scrollbar-thin"></textarea>
 
-          <button id="send-btn" onclick="sendMessage()" class="p-2.5 px-3.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-xl transition shadow-lg shadow-sky-500/20 active:scale-95">
-            <i class="fas fa-paper-plane text-xs"></i>
+          <button id="send-btn" onclick="sendMessage()" class="p-2.5 px-3.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-xl transition shadow-lg shadow-sky-500/20 active:scale-95 flex items-center justify-center">
+            <i class="fas fa-arrow-up text-xs"></i>
           </button>
         </div>
       </div>
     </footer>
   </main>
 
-  <!-- API Key Modal -->
-  <div id="api-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4">
-      <h3 class="text-lg font-bold text-white flex items-center gap-2">
-        <i class="fas fa-shield-alt text-sky-400"></i> Configure Gemini API Key
-      </h3>
-      <p class="text-xs text-slate-400">Your API key is stored strictly inside your browser's LocalStorage and is sent directly to Google Gemini servers.</p>
-      <input type="password" id="api-key-input" placeholder="AIzaSy..." class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white outline-none focus:border-sky-400">
-      <div class="flex justify-end gap-2 pt-2">
-        <button onclick="closeSettingsModal()" class="px-4 py-2 rounded-lg text-slate-400 hover:text-white text-xs">Cancel</button>
-        <button onclick="saveApiKey()" class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-bold">Save Key</button>
-      </div>
-    </div>
-  </div>
-
   <script>
-    // State Management
     let chats = JSON.parse(localStorage.getItem('nexus_chats') || '[]');
     let currentChatId = localStorage.getItem('nexus_current_chat') || null;
     let currentImageBase64 = null;
+    let currentMimeType = null;
 
-    function saveChatsToStorage() {
-      // Limit to 50 sessions
+    function saveChats() {
       if (chats.length > 50) chats = chats.slice(0, 50);
       localStorage.setItem('nexus_chats', JSON.stringify(chats));
     }
 
-    function checkApiKey() {
-      const key = localStorage.getItem('nexus_gemini_key');
-      const dot = document.getElementById('key-status-dot');
-      if (key && key.trim().length > 10) {
-        dot.className = "w-2 h-2 rounded-full bg-emerald-400";
-      } else {
-        dot.className = "w-2 h-2 rounded-full bg-red-400";
-      }
-    }
-
     function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('-translate-x-full');
-    }
-
-    function openSettingsModal() {
-      document.getElementById('api-key-input').value = localStorage.getItem('nexus_gemini_key') || '';
-      document.getElementById('api-modal').classList.remove('hidden');
-    }
-
-    function closeSettingsModal() {
-      document.getElementById('api-modal').classList.add('hidden');
-    }
-
-    function saveApiKey() {
-      const key = document.getElementById('api-key-input').value.trim();
-      localStorage.setItem('nexus_gemini_key', key);
-      checkApiKey();
-      closeSettingsModal();
+      const sb = document.getElementById('sidebar');
+      const bd = document.getElementById('backdrop');
+      sb.classList.toggle('-translate-x-full');
+      bd.classList.toggle('hidden');
     }
 
     function handleImageSelection(e) {
       const file = e.target.files[0];
       if (!file) return;
+      currentMimeType = file.type;
       const reader = new FileReader();
       reader.onload = function(evt) {
         currentImageBase64 = evt.target.result;
@@ -179,8 +157,14 @@
 
     function removeAttachedImage() {
       currentImageBase64 = null;
+      currentMimeType = null;
       document.getElementById('media-input').value = '';
       document.getElementById('image-preview-container').classList.add('hidden');
+    }
+
+    function fillPrompt(txt) {
+      document.getElementById('prompt-input').value = txt;
+      sendMessage();
     }
 
     function createNewChat() {
@@ -191,24 +175,27 @@
       };
       chats.unshift(newChat);
       currentChatId = newChat.id;
-      saveChatsToStorage();
-      renderHistoryList();
+      saveChats();
+      renderHistory();
       renderMessages();
-      if (window.innerWidth < 768) toggleSidebar();
+      if (window.innerWidth < 768) {
+        document.getElementById('sidebar').classList.add('-translate-x-full');
+        document.getElementById('backdrop').classList.add('hidden');
+      }
     }
 
-    function renderHistoryList() {
+    function renderHistory() {
       const list = document.getElementById('history-list');
       list.innerHTML = '';
       chats.forEach(chat => {
         const item = document.createElement('div');
         const isActive = chat.id === currentChatId;
         item.className = `group flex items-center justify-between p-2.5 rounded-xl cursor-pointer text-xs transition ${
-          isActive ? 'bg-sky-500/10 text-sky-300 border border-sky-500/30' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
+          isActive ? 'bg-sky-500/15 text-sky-300 border border-sky-500/30' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
         }`;
         item.innerHTML = `
           <div class="flex items-center gap-2 truncate flex-1" onclick="switchChat('${chat.id}')">
-            <i class="far fa-message text-[10px]"></i>
+            <i class="far fa-comment-code text-[11px] text-sky-400"></i>
             <span class="truncate">${chat.title}</span>
           </div>
           <button onclick="deleteChat(event, '${chat.id}')" class="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 p-1">
@@ -222,9 +209,12 @@
     function switchChat(id) {
       currentChatId = id;
       localStorage.setItem('nexus_current_chat', id);
-      renderHistoryList();
+      renderHistory();
       renderMessages();
-      if (window.innerWidth < 768) toggleSidebar();
+      if (window.innerWidth < 768) {
+        document.getElementById('sidebar').classList.add('-translate-x-full');
+        document.getElementById('backdrop').classList.add('hidden');
+      }
     }
 
     function deleteChat(e, id) {
@@ -233,8 +223,8 @@
       if (currentChatId === id) {
         currentChatId = chats.length > 0 ? chats[0].id : null;
       }
-      saveChatsToStorage();
-      renderHistoryList();
+      saveChats();
+      renderHistory();
       renderMessages();
     }
 
@@ -260,14 +250,28 @@
         wrap.className = `flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`;
 
         const box = document.createElement('div');
-        box.className = `max-w-2xl rounded-2xl p-4 text-sm ${
-          msg.role === 'user' 
-            ? 'bg-sky-600 text-white rounded-tr-none' 
-            : 'bg-slate-900/90 border border-slate-800 text-slate-200 rounded-tl-none prose'
+        box.className = `max-w-2xl sm:max-w-3xl rounded-2xl p-4 text-xs sm:text-sm ${
+          msg.role === 'user'
+            ? 'bg-sky-600 text-white rounded-tr-none shadow-md'
+            : 'bg-slate-900/90 border border-slate-800 text-slate-200 rounded-tl-none prose prose-invert'
         }`;
 
         let imgHtml = msg.image ? `<img src="${msg.image}" class="max-h-48 rounded-lg mb-2 border border-slate-700">` : '';
-        box.innerHTML = imgHtml + (msg.role === 'user' ? msg.content : marked.parse(msg.content));
+        box.innerHTML = imgHtml + (msg.role === 'user' ? `<p class="whitespace-pre-wrap">${msg.content}</p>` : marked.parse(msg.content));
+
+        // Add 1-click copy buttons to code blocks
+        box.querySelectorAll('pre').forEach(pre => {
+          const btn = document.createElement('button');
+          btn.className = "absolute top-2 right-2 px-2 py-1 bg-slate-800/80 hover:bg-slate-700 text-[10px] text-slate-300 rounded border border-slate-700 transition";
+          btn.innerHTML = '<i class="far fa-copy mr-1"></i>Copy';
+          btn.onclick = () => {
+            navigator.clipboard.writeText(pre.querySelector('code')?.innerText || pre.innerText);
+            btn.innerHTML = '<i class="fas fa-check text-emerald-400 mr-1"></i>Copied!';
+            setTimeout(() => btn.innerHTML = '<i class="far fa-copy mr-1"></i>Copy', 2000);
+          };
+          pre.appendChild(btn);
+        });
+
         wrap.appendChild(box);
         container.appendChild(wrap);
       });
@@ -277,69 +281,67 @@
     async function sendMessage() {
       const promptInput = document.getElementById('prompt-input');
       const text = promptInput.value.trim();
-      const apiKey = localStorage.getItem('nexus_gemini_key');
 
-      if (!apiKey) {
-        openSettingsModal();
-        return;
-      }
       if (!text && !currentImageBase64) return;
-
-      if (!currentChatId) {
-        createNewChat();
-      }
+      if (!currentChatId) createNewChat();
 
       const activeChat = chats.find(c => c.id === currentChatId);
-      const userMsg = {
-        role: 'user',
-        content: text,
-        image: currentImageBase64
-      };
+      const userMsg = { role: 'user', content: text, image: currentImageBase64 };
 
       activeChat.messages.push(userMsg);
       if (activeChat.messages.length === 1 && text) {
-        activeChat.title = text.slice(0, 30) + '...';
+        activeChat.title = text.slice(0, 28) + '...';
       }
 
       promptInput.value = '';
-      const sentImage = currentImageBase64;
+      promptInput.style.height = 'auto';
+
+      let imgBase64Payload = null;
+      let mimeTypePayload = currentMimeType;
+      if (currentImageBase64) {
+        imgBase64Payload = currentImageBase64.split(',')[1];
+      }
       removeAttachedImage();
       renderMessages();
 
-      // Calling Gemini API
-      try {
-        const payloadParts = [];
-        if (sentImage) {
-          const base64Data = sentImage.split(',')[1];
-          const mimeType = sentImage.substring(sentImage.indexOf(':') + 1, sentImage.indexOf(';'));
-          payloadParts.push({ inline_data: { mime_type: mimeType, data: base64Data } });
-        }
-        if (text) {
-          payloadParts.push({ text: "You are NexusCode AI, an expert coding assistant. Provide clean, production-grade code with markdown formatting.\n\n" + text });
-        }
+      // Show Bot loading indicator
+      const container = document.getElementById('messages-container');
+      const loadingWrap = document.createElement('div');
+      loadingWrap.id = 'loading-indicator';
+      loadingWrap.className = 'flex justify-start';
+      loadingWrap.innerHTML = `
+        <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl text-xs text-sky-400 flex items-center gap-2">
+          <i class="fas fa-circle-notch fa-spin"></i> NexusCode is thinking...
+        </div>`;
+      container.appendChild(loadingWrap);
+      container.scrollTop = container.scrollHeight;
 
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      try {
+        const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: payloadParts }] })
+          body: JSON.stringify({
+            prompt: text,
+            imageBase64: imgBase64Payload,
+            mimeType: mimeTypePayload
+          })
         });
 
         const data = await res.json();
-        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Error: Unable to generate code response.";
+        document.getElementById('loading-indicator')?.remove();
 
-        activeChat.messages.push({
-          role: 'model',
-          content: reply
-        });
+        if (data.error) {
+          activeChat.messages.push({ role: 'model', content: `⚠️ **Error:** ${data.error}` });
+        } else {
+          activeChat.messages.push({ role: 'model', content: data.reply });
+        }
       } catch (err) {
-        activeChat.messages.push({
-          role: 'model',
-          content: "Network error while connecting to Gemini API. Check your API key and connection."
-        });
+        document.getElementById('loading-indicator')?.remove();
+        activeChat.messages.push({ role: 'model', content: "⚠️ **Network Error:** Failed to connect to serverless endpoint." });
       }
 
-      saveChatsToStorage();
-      renderHistoryList();
+      saveChats();
+      renderHistory();
       renderMessages();
     }
 
@@ -348,12 +350,12 @@
       const chat = chats.find(c => c.id === currentChatId);
       if (chat) {
         chat.messages = [];
-        saveChatsToStorage();
+        saveChats();
         renderMessages();
       }
     }
 
-    // Auto-expand textarea
+    // Auto-expanding input
     const textarea = document.getElementById('prompt-input');
     textarea.addEventListener('input', function() {
       this.style.height = 'auto';
@@ -366,12 +368,10 @@
       }
     });
 
-    // Init
-    checkApiKey();
     if (chats.length === 0) createNewChat();
     else {
       currentChatId = chats[0].id;
-      renderHistoryList();
+      renderHistory();
       renderMessages();
     }
   </script>
