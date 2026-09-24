@@ -3,9 +3,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY || req.body.fallbackKey;
+  const apiKey = process.env.GEMINI_API_KEY || req.body.apiKey;
   if (!apiKey) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY environment variable is missing on Vercel.' });
+    return res.status(400).json({ error: 'Gemini API Key missing. Please provide or set key.' });
   }
 
   const { prompt, imageBase64, mimeType } = req.body;
@@ -22,41 +22,38 @@ export default async function handler(req, res) {
       });
     }
 
-    const systemInstruction = `You are NexusCode AI, an elite programmer and software architect.
-Always structure your answers cleanly:
-1. First, provide a brief 'Thinking & Approach' breakdown.
-2. Provide clean, well-commented, production-ready code with exact markdown tags.
-3. Provide a quick explanation of the logic or complexity calculation.`;
+    const systemPrompt = "You are NexusCode AI, an expert programmer. Analyze the input, explain the logic/thinking briefly, and write clean, formatted, production-ready code with markdown tags.";
+    parts.push({ text: `${systemPrompt}\n\n${prompt || "Analyze the attached image."}` });
 
-    parts.push({ text: `${systemInstruction}\n\nUser Question:\n${prompt || "Analyze this code/image in detail."}` });
+    const models = ['gemini-2.5-flash', 'gemini-1.5-flash'];
+    let resultData = null;
+    let lastError = null;
 
-    // Using gemini-2.5-flash with fallback to 1.5-flash
-    let model = 'gemini-2.5-flash';
-    let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: parts }] })
-    });
-
-    if (!response.ok) {
-      model = 'gemini-1.5-flash';
-      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: parts }] })
-      });
+    for (const m of models) {
+      try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts }] })
+        });
+        const data = await response.json();
+        if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+          resultData = data.candidates[0].content.parts[0].text;
+          break;
+        } else if (data.error) {
+          lastError = data.error.message;
+        }
+      } catch (err) {
+        lastError = err.message;
+      }
     }
 
-    const data = await response.json();
-
-    if (data.error) {
-      return res.status(response.status).json({ error: data.error.message || 'Gemini API Error' });
+    if (resultData) {
+      return res.status(200).json({ reply: resultData });
+    } else {
+      return res.status(500).json({ error: lastError || 'Failed to get response from Gemini.' });
     }
-
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "No code response generated.";
-    return res.status(200).json({ reply });
-
-  } catch (error) {
-    return res.status(500).json({ error: 'Server error: ' + error.message });
+  } catch (e) {
+    return res.status(500).json({ error: 'Internal error: ' + e.message });
   }
 }
