@@ -31,7 +31,7 @@
         </div>
         <div>
           <span class="font-bold text-white text-sm">NexusCode</span>
-          <span class="text-[10px] block text-sky-400 font-mono">Gemini Studio Pro</span>
+          <span class="text-[10px] block text-sky-400 font-mono">Gemini AI Studio</span>
         </div>
       </div>
       <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white p-1">
@@ -53,7 +53,6 @@
     <div class="px-4 pt-2 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Recent Sessions</div>
     <div class="flex-1 overflow-y-auto px-3 py-1 space-y-1 scrollbar-thin" id="history-list"></div>
 
-    <!-- User Profile Dock -->
     <div class="p-3 border-t border-slate-800/80 bg-slate-950/60" id="user-profile-dock"></div>
   </aside>
 
@@ -81,9 +80,9 @@
         <div class="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-400/30 flex items-center justify-center text-sky-400 text-2xl">
           <i class="fas fa-code"></i>
         </div>
-        <h3 class="text-lg sm:text-xl font-bold text-white">NexusCode Developer Assistant</h3>
+        <h3 class="text-lg sm:text-xl font-bold text-white">NexusCode AI Coding Architect</h3>
         <p class="text-xs sm:text-sm text-slate-400">
-          Ask code questions, debug errors, or upload screenshots for instant multimodal code solutions.
+          Ask full projects, games, web apps, backend logic, or bug fixes with syntax highlighting.
         </p>
       </div>
     </div>
@@ -113,7 +112,7 @@
     </footer>
   </main>
 
-  <!-- 1. Universal Auth Modal (GitHub + Email/Password Login & Register) -->
+  <!-- Universal Auth Modal -->
   <div id="auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-[#0b1324] border border-slate-800 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between">
@@ -128,7 +127,6 @@
         </button>
       </div>
 
-      <!-- GitHub OAuth Button (Untouched) -->
       <button onclick="loginWithOAuth('github')" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 border border-slate-700 hover:border-sky-400 text-white font-medium text-xs flex items-center justify-center gap-3 transition">
         <i class="fab fa-github text-sm"></i> Continue with GitHub
       </button>
@@ -139,15 +137,12 @@
         <div class="flex-1 border-t border-slate-800"></div>
       </div>
 
-      <!-- Switch Tabs: Sign In / Register -->
       <div class="flex rounded-lg bg-slate-950 p-1 border border-slate-800 text-xs">
         <button id="tab-login" onclick="switchAuthTab('login')" class="flex-1 py-1.5 rounded-md font-semibold text-sky-400 bg-slate-800/80 transition">Sign In</button>
         <button id="tab-register" onclick="switchAuthTab('register')" class="flex-1 py-1.5 rounded-md font-medium text-slate-400 hover:text-white transition">Register</button>
       </div>
 
-      <!-- Email / Password Form -->
       <form id="email-auth-form" onsubmit="handleEmailAuth(event)" class="space-y-3 text-xs">
-        <!-- Name (Visible only on Register) -->
         <div id="name-field-group" class="hidden">
           <label class="text-slate-300 font-semibold block mb-1">Your Full Name</label>
           <input type="text" id="auth-name" placeholder="e.g. Piyush Sharma" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white outline-none focus:border-sky-400">
@@ -172,7 +167,7 @@
     </div>
   </div>
 
-  <!-- 2. Onboarding / Personalize Profile Modal -->
+  <!-- Onboarding & Personalize Profile Modal -->
   <div id="personalize-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
     <div class="bg-[#0b1324] border border-sky-500/40 rounded-2xl max-w-md w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto scrollbar-thin shadow-2xl">
       <div class="flex items-center justify-between pb-3 border-b border-slate-800">
@@ -198,28 +193,28 @@
 
         <div>
           <label class="text-slate-300 font-semibold block mb-1">Primary Tech Stack & Frameworks</label>
-          <input type="text" id="user-tech-stack" placeholder="e.g. React, Node.js, Python, Tailwind" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white outline-none focus:border-sky-400">
+          <input type="text" id="user-tech-stack" placeholder="e.g. HTML, CSS, JavaScript, React, Python" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white outline-none focus:border-sky-400">
         </div>
 
         <div>
-          <label class="text-slate-300 font-semibold block mb-1">Custom Personalization Instructions (Gemini Intelligence)</label>
-          <textarea id="user-custom-instructions" rows="3" placeholder="e.g. Always write production-ready code with complete types, avoid pseudo-code, and provide concise logic explanations." class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white outline-none focus:border-sky-400 resize-none"></textarea>
+          <label class="text-slate-300 font-semibold block mb-1">Custom Personalization Instructions</label>
+          <textarea id="user-custom-instructions" rows="3" placeholder="e.g. Always write complete, production-ready code with HTML, CSS, JS separate or inside complete single-file blocks without skipping code." class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white outline-none focus:border-sky-400 resize-none"></textarea>
         </div>
       </div>
 
       <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
         <button onclick="closePersonalizeModal()" class="px-4 py-2 text-slate-400 hover:text-white text-xs">Cancel</button>
-        <button onclick="saveUserProfile()" class="px-5 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs rounded-lg transition shadow-lg shadow-sky-500/20">Save & Apply</button>
+        <button onclick="saveUserProfile()" class="px-5 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs rounded-lg transition shadow-lg">Save & Apply</button>
       </div>
     </div>
   </div>
 
-  <!-- 3. General Settings Modal -->
+  <!-- Settings Modal -->
   <div id="settings-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-[#0b1324] border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-4 max-h-[90vh] overflow-y-auto scrollbar-thin">
       <div class="flex items-center justify-between pb-3 border-b border-slate-800">
         <h3 class="text-sm font-bold text-white flex items-center gap-2">
-          <i class="fas fa-cog text-sky-400"></i> Settings & Backup
+          <i class="fas fa-cog text-sky-400"></i> Settings & Engine
         </h3>
         <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white p-1">
           <i class="fas fa-times text-xs"></i>
@@ -237,11 +232,12 @@
 
         <div class="space-y-1.5">
           <label class="text-slate-300 font-semibold flex items-center gap-1.5">
-            <i class="fas fa-microchip text-sky-400"></i> Model Engine
+            <i class="fas fa-microchip text-sky-400"></i> Active Model
           </label>
           <select id="model-select" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white outline-none focus:border-sky-400">
-            <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fast + Deep Thinking)</option>
-            <option value="gemini-1.5-flash">Gemini 1.5 Flash (High Stability)</option>
+            <option value="gemini-2.0-flash">Gemini 2.0 Flash (Fastest & Best for Coding)</option>
+            <option value="gemini-1.5-flash">Gemini 1.5 Flash (Standard)</option>
+            <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep Architecture)</option>
           </select>
         </div>
 
@@ -260,7 +256,7 @@
 
         <div class="pt-2 border-t border-slate-800">
           <button onclick="wipeAllData()" class="w-full py-2 px-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 text-xs transition flex items-center justify-center gap-1.5">
-            <i class="fas fa-trash-alt text-[11px]"></i> Clear All 50 Sessions
+            <i class="fas fa-trash-alt text-[11px]"></i> Clear All Sessions
           </button>
         </div>
       </div>
@@ -280,7 +276,7 @@
     let isProcessing = false;
     let supabaseClient = null;
     let currentUser = null;
-    let currentAuthMode = 'login'; // 'login' or 'register'
+    let currentAuthMode = 'login';
 
     async function initSupabaseFromBackend() {
       try {
@@ -363,7 +359,6 @@
     }
     function closeAuthModal() { document.getElementById('auth-modal').classList.add('hidden'); }
 
-    // Switch between Login and Register tabs
     function switchAuthTab(mode) {
       currentAuthMode = mode;
       const tabLogin = document.getElementById('tab-login');
@@ -389,7 +384,6 @@
       }
     }
 
-    // Handle Email & Password Login / Register
     async function handleEmailAuth(e) {
       e.preventDefault();
       if (!supabaseClient) {
@@ -412,19 +406,14 @@
           const { data, error } = await supabaseClient.auth.signUp({
             email: email,
             password: password,
-            options: {
-              data: { full_name: name || 'Developer' }
-            }
+            options: { data: { full_name: name || 'Developer' } }
           });
-
           if (error) throw error;
-
           if (name) {
             const p = JSON.parse(localStorage.getItem('nexus_user_profile') || '{}');
             p.name = name;
             localStorage.setItem('nexus_user_profile', JSON.stringify(p));
           }
-
           if (data.session) {
             currentUser = data.user;
             closeAuthModal();
@@ -432,19 +421,16 @@
             openPersonalizeModal();
           } else {
             errorDiv.className = "text-[11px] text-emerald-400 bg-emerald-500/10 p-2.5 rounded-lg border border-emerald-500/20";
-            errorDiv.textContent = "Registration successful! You can now log in with your email and password.";
+            errorDiv.textContent = "Registration successful! You can now log in.";
             errorDiv.classList.remove('hidden');
-            setTimeout(() => switchAuthTab('login'), 2000);
+            setTimeout(() => switchAuthTab('login'), 1500);
           }
         } else {
-          // Login
           const { data, error } = await supabaseClient.auth.signInWithPassword({
             email: email,
             password: password
           });
-
           if (error) throw error;
-
           currentUser = data.user;
           closeAuthModal();
           updateProfileDock();
@@ -459,7 +445,6 @@
       }
     }
 
-    // Keep GitHub OAuth as is
     async function loginWithOAuth(provider) {
       if (!supabaseClient) {
         alert("Supabase initializing... Please ensure SUPABASE_URL and SUPABASE_ANON_KEY are in Vercel.");
@@ -554,7 +539,7 @@
 
     function openSettingsModal() {
       document.getElementById('settings-key-input').value = localStorage.getItem('nexus_gemini_key') || '';
-      document.getElementById('model-select').value = localStorage.getItem('nexus_model') || 'gemini-2.5-flash';
+      document.getElementById('model-select').value = localStorage.getItem('nexus_model') || 'gemini-2.0-flash';
       document.getElementById('settings-modal').classList.remove('hidden');
     }
     function closeSettingsModal() { document.getElementById('settings-modal').classList.add('hidden'); }
@@ -790,13 +775,13 @@
       loader.innerHTML = `
         <div class="bg-slate-900 border border-sky-500/40 p-4 rounded-2xl text-xs space-y-2.5 max-w-sm shadow-xl">
           <div class="flex items-center justify-between text-sky-400 font-semibold">
-            <span class="flex items-center gap-2"><i class="fas fa-brain animate-pulse"></i> NexusCode is Thinking...</span>
+            <span class="flex items-center gap-2"><i class="fas fa-brain animate-pulse"></i> Generating Full Code...</span>
             <span id="think-timer" class="font-mono text-slate-400 text-[11px]">0.0s</span>
           </div>
           <div class="h-1 bg-slate-800 rounded-full overflow-hidden">
             <div class="h-full bg-sky-500 rounded-full animate-pulse w-4/5"></div>
           </div>
-          <div id="think-phase" class="text-[11px] text-slate-400 font-mono">Formulating algorithm & AST logic...</div>
+          <div id="think-phase" class="text-[11px] text-slate-400 font-mono">Writing complete HTML, CSS, JavaScript logic...</div>
         </div>`;
       container.appendChild(loader);
       container.scrollTop = container.scrollHeight;
@@ -807,34 +792,46 @@
         if (timerElem) timerElem.textContent = ((Date.now() - startTime) / 1000).toFixed(1) + 's';
       }, 100);
 
+      // System Prompt Setup
       const profile = JSON.parse(localStorage.getItem('nexus_user_profile') || '{}');
-      let systemInstruction = "You are NexusCode AI, an expert programming mentor and software architect. Always format code using clean markdown blocks (e.g. ```javascript, ```python).";
+      let systemInstruction = "You are NexusCode AI, an elite programmer and software engineer. Always provide complete, production-ready, fully functional code with complete HTML, CSS, and JavaScript. Never truncate code or use placeholders like '// add remaining code here'. Structure cleanly with markdown code blocks.";
 
-      if (profile.name) systemInstruction += `\nAddressing User: ${profile.name}.`;
-      if (profile.stack) systemInstruction += `\nPrimary Tech Stack: ${profile.stack}.`;
-      if (profile.instructions) systemInstruction += `\nPersonalized Instructions: ${profile.instructions}`;
+      if (profile.name) systemInstruction += `\nUser Developer: ${profile.name}.`;
+      if (profile.stack) systemInstruction += `\nPreferred Stack: ${profile.stack}.`;
+      if (profile.instructions) systemInstruction += `\nCustom Directive: ${profile.instructions}`;
 
+      // Clean History Sanitizer (FILTER OUT ALL ERROR MESSAGES)
+      const sanitizedHistory = [];
+      const rawHistory = activeChat.messages.filter(m => !m.content.startsWith('⚠️'));
+
+      // Ensure proper user -> model sequence starting with user
+      let lastRole = null;
+      for (const m of rawHistory.slice(-8)) {
+        if (m.role === lastRole) continue;
+        if (sanitizedHistory.length === 0 && m.role !== 'user') continue;
+        sanitizedHistory.push(m);
+        lastRole = m.role;
+      }
+
+      // Build valid Gemini contents
       const contentsPayload = [];
-      const historyContext = activeChat.messages.slice(-6);
-
-      historyContext.forEach((m, idx) => {
+      sanitizedHistory.forEach((m, idx) => {
         const parts = [];
-        if (m.image && idx === historyContext.length - 1) {
+        if (m.image && idx === sanitizedHistory.length - 1) {
           parts.push({
             inlineData: { mimeType: mimeTypePayload, data: imgBase64Payload }
           });
         }
-        let txt = m.content;
-        if (idx === 0 && m.role === 'user') txt = `${systemInstruction}\n\n${txt}`;
-        parts.push({ text: txt });
+        parts.push({ text: m.content });
         contentsPayload.push({
           role: m.role === 'user' ? 'user' : 'model',
           parts: parts
         });
       });
 
-      const selectedModel = localStorage.getItem('nexus_model') || 'gemini-2.5-flash';
-      const modelsToTry = [selectedModel, selectedModel === 'gemini-2.5-flash' ? 'gemini-1.5-flash' : 'gemini-2.5-flash'];
+      // Rock-Solid Model Cascade: 2.0 Flash (Fastest) -> 1.5 Flash -> 1.5 Pro
+      const selectedModel = localStorage.getItem('nexus_model') || 'gemini-2.0-flash';
+      const modelsToTry = [selectedModel, 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'].filter((v, i, a) => a.indexOf(v) === i);
 
       try {
         let extractedReply = null;
@@ -845,11 +842,15 @@
           try {
             const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
               method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json',
-                'x-goog-api-key': apiKey
-              },
-              body: JSON.stringify({ contents: contentsPayload })
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                systemInstruction: { parts: [{ text: systemInstruction }] },
+                contents: contentsPayload,
+                generationConfig: {
+                  temperature: 0.4,
+                  maxOutputTokens: 8192
+                }
+              })
             });
 
             const json = await res.json();
@@ -871,7 +872,7 @@
 
         const modelMsg = {
           role: 'model',
-          content: extractedReply || extractedThoughts || `⚠️ Error: ${finalError || 'No response returned.'}`,
+          content: extractedReply || extractedThoughts || `⚠️ API Notice: ${finalError || 'Unable to generate code.'}`,
           thought: extractedReply ? extractedThoughts.trim() : ""
         };
 
