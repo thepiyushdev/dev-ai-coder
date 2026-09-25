@@ -24,7 +24,6 @@
   <!-- Sidebar -->
   <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 sm:w-80 bg-[#050914] border-r border-slate-800/80 flex flex-col transition-transform duration-300 -translate-x-full md:translate-x-0 md:static">
     
-    <!-- Header -->
     <div class="p-4 border-b border-slate-800 flex items-center justify-between">
       <div class="flex items-center gap-2.5">
         <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-400 flex items-center justify-center text-sky-400">
@@ -40,7 +39,6 @@
       </button>
     </div>
 
-    <!-- Actions & Search -->
     <div class="p-3 space-y-2">
       <button onclick="createNewChat()" class="w-full py-2.5 px-4 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 font-medium text-xs flex items-center justify-center gap-2 transition active:scale-95">
         <i class="fas fa-plus"></i> New Coding Chat
@@ -55,7 +53,7 @@
     <div class="px-4 pt-2 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Recent Sessions</div>
     <div class="flex-1 overflow-y-auto px-3 py-1 space-y-1 scrollbar-thin" id="history-list"></div>
 
-    <!-- User Profile Dock (Dynamic) -->
+    <!-- User Profile Dock -->
     <div class="p-3 border-t border-slate-800/80 bg-slate-950/60" id="user-profile-dock"></div>
   </aside>
 
@@ -115,31 +113,62 @@
     </footer>
   </main>
 
-  <!-- 1. Universal Auth Modal (For any visitor) -->
+  <!-- 1. Universal Auth Modal (GitHub + Email/Password Login & Register) -->
   <div id="auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-[#0b1324] border border-slate-800 rounded-2xl max-w-sm w-full p-6 space-y-5">
+    <div class="bg-[#0b1324] border border-slate-800 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
           <div class="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center">
             <i class="fas fa-user-lock text-xs"></i>
           </div>
-          <h3 class="text-sm font-bold text-white">Sign In to NexusCode</h3>
+          <h3 id="auth-title" class="text-sm font-bold text-white">Sign In to NexusCode</h3>
         </div>
         <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white p-1">
           <i class="fas fa-times text-xs"></i>
         </button>
       </div>
 
-      <p class="text-xs text-slate-400">Sign in with your developer account to sync your chat sessions and unlock personalized coding.</p>
+      <!-- GitHub OAuth Button (Untouched) -->
+      <button onclick="loginWithOAuth('github')" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 border border-slate-700 hover:border-sky-400 text-white font-medium text-xs flex items-center justify-center gap-3 transition">
+        <i class="fab fa-github text-sm"></i> Continue with GitHub
+      </button>
 
-      <div class="space-y-3">
-        <button onclick="loginWithOAuth('github')" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 border border-slate-700 hover:border-sky-400 text-white font-medium text-xs flex items-center justify-center gap-3 transition">
-          <i class="fab fa-github text-sm"></i> Continue with GitHub
-        </button>
-        <button onclick="loginWithOAuth('google')" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 border border-slate-700 hover:border-sky-400 text-white font-medium text-xs flex items-center justify-center gap-3 transition">
-          <i class="fab fa-google text-sm text-red-400"></i> Continue with Google
-        </button>
+      <div class="flex items-center my-2">
+        <div class="flex-1 border-t border-slate-800"></div>
+        <span class="px-2.5 text-[10px] text-slate-500 uppercase tracking-widest font-mono">OR</span>
+        <div class="flex-1 border-t border-slate-800"></div>
       </div>
+
+      <!-- Switch Tabs: Sign In / Register -->
+      <div class="flex rounded-lg bg-slate-950 p-1 border border-slate-800 text-xs">
+        <button id="tab-login" onclick="switchAuthTab('login')" class="flex-1 py-1.5 rounded-md font-semibold text-sky-400 bg-slate-800/80 transition">Sign In</button>
+        <button id="tab-register" onclick="switchAuthTab('register')" class="flex-1 py-1.5 rounded-md font-medium text-slate-400 hover:text-white transition">Register</button>
+      </div>
+
+      <!-- Email / Password Form -->
+      <form id="email-auth-form" onsubmit="handleEmailAuth(event)" class="space-y-3 text-xs">
+        <!-- Name (Visible only on Register) -->
+        <div id="name-field-group" class="hidden">
+          <label class="text-slate-300 font-semibold block mb-1">Your Full Name</label>
+          <input type="text" id="auth-name" placeholder="e.g. Piyush Sharma" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white outline-none focus:border-sky-400">
+        </div>
+
+        <div>
+          <label class="text-slate-300 font-semibold block mb-1">Email Address</label>
+          <input type="email" id="auth-email" required placeholder="you@example.com" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white outline-none focus:border-sky-400">
+        </div>
+
+        <div>
+          <label class="text-slate-300 font-semibold block mb-1">Password</label>
+          <input type="password" id="auth-password" required minlength="6" placeholder="••••••••" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white outline-none focus:border-sky-400">
+        </div>
+
+        <div id="auth-error-msg" class="hidden text-[11px] text-red-400 bg-red-500/10 p-2 rounded-lg border border-red-500/20"></div>
+
+        <button type="submit" id="auth-submit-btn" class="w-full py-2.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg shadow-sky-500/20 active:scale-95">
+          Sign In
+        </button>
+      </form>
     </div>
   </div>
 
@@ -198,7 +227,6 @@
       </div>
 
       <div class="space-y-4 text-xs">
-        <!-- Gemini Key (Optional Fallback) -->
         <div class="space-y-1.5">
           <label class="text-slate-300 font-semibold flex items-center justify-between">
             <span><i class="fas fa-key text-sky-400 mr-1"></i> Gemini API Key</span>
@@ -207,7 +235,6 @@
           <input type="password" id="settings-key-input" placeholder="AIzaSy..." class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white outline-none focus:border-sky-400 font-mono">
         </div>
 
-        <!-- Model Engine -->
         <div class="space-y-1.5">
           <label class="text-slate-300 font-semibold flex items-center gap-1.5">
             <i class="fas fa-microchip text-sky-400"></i> Model Engine
@@ -218,7 +245,6 @@
           </select>
         </div>
 
-        <!-- Chat Backup -->
         <div class="space-y-2 pt-2 border-t border-slate-800">
           <label class="text-slate-400 font-semibold uppercase text-[10px] tracking-wider">Chat Backup</label>
           <div class="grid grid-cols-2 gap-2">
@@ -254,8 +280,8 @@
     let isProcessing = false;
     let supabaseClient = null;
     let currentUser = null;
+    let currentAuthMode = 'login'; // 'login' or 'register'
 
-    // Auto-fetch Supabase Config from Vercel Serverless Function
     async function initSupabaseFromBackend() {
       try {
         const res = await fetch('/api/config');
@@ -320,7 +346,7 @@
               </div>
               <div>
                 <div class="text-xs font-semibold text-white">Guest User</div>
-                <button onclick="openAuthModal()" class="text-[10px] text-sky-400 hover:underline">Sign In / Connect</button>
+                <button onclick="openAuthModal()" class="text-[10px] text-sky-400 hover:underline">Sign In / Register</button>
               </div>
             </div>
             <button onclick="openSettingsModal()" class="text-slate-400 hover:text-white p-1.5">
@@ -331,12 +357,112 @@
       }
     }
 
-    function openAuthModal() { document.getElementById('auth-modal').classList.remove('hidden'); }
+    function openAuthModal() { 
+      document.getElementById('auth-modal').classList.remove('hidden'); 
+      switchAuthTab('login');
+    }
     function closeAuthModal() { document.getElementById('auth-modal').classList.add('hidden'); }
 
+    // Switch between Login and Register tabs
+    function switchAuthTab(mode) {
+      currentAuthMode = mode;
+      const tabLogin = document.getElementById('tab-login');
+      const tabRegister = document.getElementById('tab-register');
+      const nameGroup = document.getElementById('name-field-group');
+      const submitBtn = document.getElementById('auth-submit-btn');
+      const title = document.getElementById('auth-title');
+      const errorDiv = document.getElementById('auth-error-msg');
+      errorDiv.classList.add('hidden');
+
+      if (mode === 'login') {
+        tabLogin.className = "flex-1 py-1.5 rounded-md font-semibold text-sky-400 bg-slate-800/80 transition";
+        tabRegister.className = "flex-1 py-1.5 rounded-md font-medium text-slate-400 hover:text-white transition";
+        nameGroup.classList.add('hidden');
+        submitBtn.textContent = "Sign In";
+        title.textContent = "Sign In to NexusCode";
+      } else {
+        tabRegister.className = "flex-1 py-1.5 rounded-md font-semibold text-sky-400 bg-slate-800/80 transition";
+        tabLogin.className = "flex-1 py-1.5 rounded-md font-medium text-slate-400 hover:text-white transition";
+        nameGroup.classList.remove('hidden');
+        submitBtn.textContent = "Create Account";
+        title.textContent = "Register for NexusCode";
+      }
+    }
+
+    // Handle Email & Password Login / Register
+    async function handleEmailAuth(e) {
+      e.preventDefault();
+      if (!supabaseClient) {
+        alert("Connecting to Supabase... Please ensure keys are in Vercel.");
+        return;
+      }
+
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value.trim();
+      const name = document.getElementById('auth-name').value.trim();
+      const errorDiv = document.getElementById('auth-error-msg');
+      const submitBtn = document.getElementById('auth-submit-btn');
+
+      errorDiv.classList.add('hidden');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Processing...';
+
+      try {
+        if (currentAuthMode === 'register') {
+          const { data, error } = await supabaseClient.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+              data: { full_name: name || 'Developer' }
+            }
+          });
+
+          if (error) throw error;
+
+          if (name) {
+            const p = JSON.parse(localStorage.getItem('nexus_user_profile') || '{}');
+            p.name = name;
+            localStorage.setItem('nexus_user_profile', JSON.stringify(p));
+          }
+
+          if (data.session) {
+            currentUser = data.user;
+            closeAuthModal();
+            updateProfileDock();
+            openPersonalizeModal();
+          } else {
+            errorDiv.className = "text-[11px] text-emerald-400 bg-emerald-500/10 p-2.5 rounded-lg border border-emerald-500/20";
+            errorDiv.textContent = "Registration successful! You can now log in with your email and password.";
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => switchAuthTab('login'), 2000);
+          }
+        } else {
+          // Login
+          const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: password
+          });
+
+          if (error) throw error;
+
+          currentUser = data.user;
+          closeAuthModal();
+          updateProfileDock();
+        }
+      } catch (err) {
+        errorDiv.className = "text-[11px] text-red-400 bg-red-500/10 p-2 rounded-lg border border-red-500/20";
+        errorDiv.textContent = err.message || "Authentication error.";
+        errorDiv.classList.remove('hidden');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = currentAuthMode === 'login' ? 'Sign In' : 'Create Account';
+      }
+    }
+
+    // Keep GitHub OAuth as is
     async function loginWithOAuth(provider) {
       if (!supabaseClient) {
-        alert("Supabase is initializing from Vercel. Please ensure SUPABASE_URL and SUPABASE_ANON_KEY are set in Vercel.");
+        alert("Supabase initializing... Please ensure SUPABASE_URL and SUPABASE_ANON_KEY are in Vercel.");
         return;
       }
       try {
@@ -344,7 +470,7 @@
           provider: provider,
           options: { redirectTo: window.location.origin }
         });
-        if (error) alert("OAuth Error: " + error.message);
+        if (error) alert("GitHub OAuth Error: " + error.message);
       } catch (err) {
         alert("Authentication failed: " + err.message);
       }
