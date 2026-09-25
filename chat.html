@@ -453,7 +453,7 @@
       try {
         const { error } = await supabaseClient.auth.signInWithOAuth({
           provider: provider,
-          options: { redirectTo: window.location.origin }
+          options: { redirectTo: window.location.origin + "/chat.html" }
         });
         if (error) alert("GitHub OAuth Error: " + error.message);
       } catch (err) {

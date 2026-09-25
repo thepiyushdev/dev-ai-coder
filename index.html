@@ -48,7 +48,15 @@
       animation: float-slow 6s ease-in-out infinite;
     }
   </style>
+
+  <script>
+    // Agar GitHub auth token ke sath landing page par aaye toh seedha chat arena me redirect karo
+    if (window.location.hash.includes('access_token') || window.location.search.includes('code=')) {
+      window.location.href = '/chat.html' + window.location.search + window.location.hash;
+    }
+  </script>
 </head>
+
 <body class="text-slate-100 bg-[#030712] relative selection:bg-sky-500 selection:text-black overflow-x-hidden">
 
   <!-- Ambient Light Orbs -->
