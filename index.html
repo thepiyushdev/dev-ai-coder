@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>NexusCode AI | Gemini Assistant</title>
+  <title>NexusCode AI | Gemini 2.5 Flash Deep Thinker</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -14,49 +14,55 @@
     pre { background: #070d1a !important; padding: 1rem; border-radius: 0.75rem; border: 1px solid #1e3a8a; overflow-x: auto; margin: 0.75rem 0; position: relative; }
     code { font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 0.85rem; color: #38bdf8; }
     .prose p { margin-bottom: 0.5rem; line-height: 1.6; }
-    .prose pre { color: #f1f5f9; }
-    .prose strong { color: #e2e8f0; }
+    .prose strong { color: #f8fafc; }
+    .prose h1, .prose h2, .prose h3 { color: #f1f5f9; font-weight: 700; margin-top: 1rem; margin-bottom: 0.5rem; }
+    .prose ul { list-style: disc; padding-left: 1.25rem; margin-bottom: 0.5rem; }
+    details > summary { list-style: none; }
+    details > summary::-webkit-details-marker { display: none; }
   </style>
 </head>
 <body class="text-slate-100 flex h-[100dvh] overflow-hidden antialiased bg-[#030712]">
 
   <div id="backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 z-30 hidden md:hidden backdrop-blur-sm"></div>
 
-  <!-- Sidebar -->
+  <!-- Sidebar (50 Chats Session Memory) -->
   <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 sm:w-80 bg-[#050914] border-r border-slate-800 flex flex-col transition-transform duration-300 -translate-x-full md:translate-x-0 md:static">
     <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2.5">
         <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-400 flex items-center justify-center text-sky-400">
           <i class="fas fa-brain text-sm"></i>
         </div>
-        <span class="font-bold text-white text-sm">NexusCode<span class="text-sky-400">.ai</span></span>
+        <div>
+          <span class="font-bold text-white text-sm">NexusCode</span>
+          <span class="text-[10px] block text-sky-400 font-mono">Gemini 2.5 Flash</span>
+        </div>
       </div>
-      <button onclick="toggleSidebar()" class="md:hidden text-slate-400 p-1">
+      <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white p-1">
         <i class="fas fa-times"></i>
       </button>
     </div>
 
     <div class="p-3">
-      <button onclick="createNewChat()" class="w-full py-2.5 px-4 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 font-medium text-xs flex items-center justify-center gap-2 transition">
+      <button onclick="createNewChat()" class="w-full py-2.5 px-4 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 font-medium text-xs flex items-center justify-center gap-2 transition active:scale-95">
         <i class="fas fa-plus"></i> New Coding Chat
       </button>
     </div>
 
     <div class="flex-1 overflow-y-auto px-3 py-1 space-y-1 scrollbar-thin" id="history-list"></div>
 
-    <div class="p-3 border-t border-slate-800 text-center">
+    <div class="p-3 border-t border-slate-800">
       <button onclick="openKeyModal()" class="w-full py-2 px-3 bg-slate-900 border border-slate-800 rounded-lg text-xs text-sky-300 hover:bg-slate-800 transition flex items-center justify-between">
-        <span class="flex items-center gap-1.5"><i class="fas fa-key text-[11px]"></i> Gemini API Key</span>
+        <span class="flex items-center gap-1.5"><i class="fas fa-key text-[11px]"></i> Configure Gemini Key</span>
         <span id="key-indicator" class="w-2 h-2 rounded-full bg-red-400"></span>
       </button>
     </div>
   </aside>
 
-  <!-- Main Chat Workspace -->
+  <!-- Main Workspace -->
   <main class="flex-1 flex flex-col h-[100dvh] bg-[#02050e] relative overflow-hidden">
     <header class="h-14 border-b border-slate-800 flex items-center justify-between px-4 bg-slate-950/60 backdrop-blur-md z-20">
       <div class="flex items-center gap-3">
-        <button onclick="toggleSidebar()" class="md:hidden text-slate-400 p-1.5 rounded-lg border border-slate-800">
+        <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-sky-400 p-1.5 rounded-lg border border-slate-800">
           <i class="fas fa-bars text-sm"></i>
         </button>
         <h2 id="current-chat-title" class="text-xs sm:text-sm font-semibold text-slate-200 truncate max-w-[200px] sm:max-w-md">New Session</h2>
@@ -71,8 +77,10 @@
         <div class="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-400/30 flex items-center justify-center text-sky-400 text-2xl">
           <i class="fas fa-code"></i>
         </div>
-        <h3 class="text-lg sm:text-xl font-bold text-white">NexusCode AI Coding Assistant</h3>
-        <p class="text-xs sm:text-sm text-slate-400">Paste code, ask algorithmic problems, or upload UI screenshots.</p>
+        <h3 class="text-lg sm:text-xl font-bold text-white">NexusCode Developer Assistant</h3>
+        <p class="text-xs sm:text-sm text-slate-400">
+          Powered by Gemini 2.5 Flash Thinking Mode. Ask coding problems, debug errors, or upload UI screenshots for deep reasoning & instant code.
+        </p>
       </div>
     </div>
 
@@ -91,7 +99,7 @@
             <input type="file" id="media-input" accept="image/*" class="hidden" onchange="handleImageSelection(event)">
           </label>
 
-          <textarea id="prompt-input" rows="1" placeholder="Ask coding problem or paste bug..." class="flex-1 bg-transparent text-sm text-slate-100 placeholder-slate-500 resize-none outline-none py-2.5 max-h-32 scrollbar-thin"></textarea>
+          <textarea id="prompt-input" rows="1" placeholder="Describe coding task or paste code..." class="flex-1 bg-transparent text-sm text-slate-100 placeholder-slate-500 resize-none outline-none py-2.5 max-h-32 scrollbar-thin"></textarea>
 
           <button id="send-btn" onclick="sendMessage()" class="p-2.5 px-3.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-xl transition shadow-lg shadow-sky-500/20 active:scale-95 flex items-center justify-center">
             <i class="fas fa-arrow-up text-xs"></i>
@@ -107,7 +115,7 @@
       <h3 class="text-sm font-bold text-white flex items-center gap-2">
         <i class="fas fa-key text-sky-400"></i> Enter Gemini API Key
       </h3>
-      <p class="text-xs text-slate-400">Paste your Gemini API key (starts with AIzaSy...). It will be saved securely in your browser session.</p>
+      <p class="text-xs text-slate-400">Paste your Gemini API key (starts with AIzaSy...). It will be stored safely in your browser local storage.</p>
       <input type="password" id="manual-key-input" placeholder="AIzaSy..." class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white outline-none focus:border-sky-400">
       <div class="flex justify-end gap-2">
         <button onclick="closeKeyModal()" class="px-3 py-1.5 text-xs text-slate-400">Cancel</button>
@@ -252,12 +260,34 @@
         box.className = `max-w-2xl sm:max-w-3xl rounded-2xl p-4 text-xs sm:text-sm ${
           msg.role === 'user'
             ? 'bg-sky-600 text-white rounded-tr-none shadow-md'
-            : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-none prose prose-invert'
+            : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-none'
         }`;
 
-        let imgHtml = msg.image ? `<img src="${msg.image}" class="max-h-48 rounded-lg mb-2 border border-slate-700">` : '';
-        box.innerHTML = imgHtml + (msg.role === 'user' ? `<p class="whitespace-pre-wrap">${msg.content}</p>` : marked.parse(msg.content));
+        let imgHtml = msg.image ? `<img src="${msg.image}" class="max-h-48 rounded-lg mb-3 border border-slate-700">` : '';
 
+        // Render Thought Box if model output has thoughts
+        let thoughtHtml = '';
+        if (msg.role !== 'user' && msg.thought) {
+          thoughtHtml = `
+            <details class="mb-3 bg-slate-950/80 border border-slate-800 rounded-xl overflow-hidden group">
+              <summary class="cursor-pointer px-3.5 py-2 text-xs text-sky-400 font-mono font-medium flex items-center justify-between hover:bg-slate-900/60 select-none">
+                <span class="flex items-center gap-2"><i class="fas fa-brain text-[11px]"></i> Reasoning & Thought Process</span>
+                <span class="text-[10px] text-slate-500 group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <div class="p-3 text-[11px] text-slate-400 font-mono border-t border-slate-800/80 whitespace-pre-wrap leading-relaxed bg-[#020611]">
+                ${msg.thought.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+              </div>
+            </details>
+          `;
+        }
+
+        const bodyHtml = msg.role === 'user' 
+          ? `<p class="whitespace-pre-wrap">${msg.content}</p>` 
+          : `<div class="prose prose-invert max-w-none">${marked.parse(msg.content)}</div>`;
+
+        box.innerHTML = imgHtml + thoughtHtml + bodyHtml;
+
+        // Copy button on code snippets
         box.querySelectorAll('pre').forEach(pre => {
           const btn = document.createElement('button');
           btn.className = "absolute top-2 right-2 px-2 py-1 bg-slate-800 text-[10px] text-slate-300 rounded border border-slate-700 hover:text-white";
@@ -276,29 +306,18 @@
       container.scrollTop = container.scrollHeight;
     }
 
-    async function callGeminiDirect(key, parts) {
-      const models = ['gemini-2.5-flash', 'gemini-1.5-flash'];
-      for (const m of models) {
-        try {
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${key}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts }] })
-          });
-          const d = await res.json();
-          if (d.candidates?.[0]?.content?.parts?.[0]?.text) {
-            return d.candidates[0].content.parts[0].text;
-          }
-        } catch(e) {}
-      }
-      return null;
-    }
-
     async function sendMessage() {
       const promptInput = document.getElementById('prompt-input');
       const text = promptInput.value.trim();
 
       if (!text && !currentImageBase64) return;
+
+      const apiKey = localStorage.getItem('nexus_gemini_key');
+      if (!apiKey) {
+        openKeyModal();
+        return;
+      }
+
       if (!currentChatId) createNewChat();
 
       const activeChat = chats.find(c => c.id === currentChatId);
@@ -313,76 +332,134 @@
       removeAttachedImage();
       renderMessages();
 
-      // Realistic Dynamic Gemini-Style Thinking Indicator
+      // Thinking Status Animation with Stopwatch
       const container = document.getElementById('messages-container');
       const loader = document.createElement('div');
       loader.id = 'dynamic-thinking';
       loader.className = 'flex justify-start';
       loader.innerHTML = `
-        <div class="bg-slate-900 border border-sky-500/30 p-3.5 rounded-2xl text-xs space-y-2 max-w-sm">
-          <div class="flex items-center gap-2 text-sky-400 font-semibold animate-pulse">
-            <i class="fas fa-brain"></i> <span id="think-phase">Analyzing logic & syntax...</span>
+        <div class="bg-slate-900 border border-sky-500/40 p-4 rounded-2xl text-xs space-y-2.5 max-w-sm">
+          <div class="flex items-center justify-between text-sky-400 font-semibold">
+            <span class="flex items-center gap-2"><i class="fas fa-brain animate-pulse"></i> Thinking & Reasoning...</span>
+            <span id="think-timer" class="font-mono text-slate-400 text-[11px]">0.0s</span>
           </div>
           <div class="h-1 bg-slate-800 rounded-full overflow-hidden">
-            <div class="h-full bg-sky-500 rounded-full animate-pulse w-3/4"></div>
+            <div class="h-full bg-sky-500 rounded-full animate-pulse w-4/5"></div>
           </div>
+          <div id="think-phase" class="text-[11px] text-slate-400 font-mono">Deconstructing algorithm and syntax logic...</div>
         </div>`;
       container.appendChild(loader);
       container.scrollTop = container.scrollHeight;
 
-      const phases = ["Deconstructing logic & dependencies...", "Running syntax & AST checks...", "Formulating optimized solution..."];
+      let startTime = Date.now();
+      const timerInterval = setInterval(() => {
+        const sec = ((Date.now() - startTime) / 1000).toFixed(1);
+        const timerElem = document.getElementById('think-timer');
+        if (timerElem) timerElem.textContent = sec + 's';
+      }, 100);
+
+      const phases = [
+        "Analyzing code structures and constraints...",
+        "Executing logic evaluation & AST calculation...",
+        "Formulating production-ready solution..."
+      ];
       let pIdx = 0;
-      const thinkInterval = setInterval(() => {
+      const phaseInterval = setInterval(() => {
         if (pIdx < phases.length) {
           const phElem = document.getElementById('think-phase');
           if (phElem) phElem.textContent = phases[pIdx++];
         }
-      }, 800);
+      }, 1200);
 
       try {
-        let savedKey = localStorage.getItem('nexus_gemini_key') || '';
-        let reply = null;
+        const parts = [];
 
-        // Try direct call first if key available
-        if (savedKey) {
-          const parts = [];
-          if (imgBase64Payload && mimeTypePayload) {
-            parts.push({ inline_data: { mime_type: mimeTypePayload, data: imgBase64Payload } });
-          }
-          parts.push({ text: "You are NexusCode AI, an expert software developer. Write clean code with markdown tags.\n\n" + (text || "Analyze image.") });
-          reply = await callGeminiDirect(savedKey, parts);
-        }
-
-        // If direct call wasn't possible or failed, call backend endpoint
-        if (!reply) {
-          const res = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              prompt: text,
-              imageBase64: imgBase64Payload,
+        // Correct camelCase inlineData format
+        if (imgBase64Payload && mimeTypePayload) {
+          parts.push({
+            inlineData: {
               mimeType: mimeTypePayload,
-              apiKey: savedKey
-            })
+              data: imgBase64Payload
+            }
           });
-          const data = await res.json();
-          if (data.reply) reply = data.reply;
-          else if (data.error && !savedKey) {
-            openKeyModal();
-            reply = `⚠️ ${data.error} Please click 'Gemini API Key' in the sidebar to add your key once.`;
-          } else {
-            reply = `⚠️ Error: ${data.error || 'Unable to generate code.'}`;
+        }
+
+        const systemPrompt = "You are NexusCode AI, an elite programmer and software architect. Provide clean, robust, production-ready code with exact markdown tags. Explain the approach and calculation clearly.";
+        parts.push({ text: `${systemPrompt}\n\n${text || "Analyze and fix the attached image."}` });
+
+        // Direct Google Gemini API Call (Supports dynamic thinking)
+        const models = ['gemini-2.5-flash', 'gemini-1.5-flash'];
+        let rawData = null;
+        let apiError = null;
+
+        for (const model of models) {
+          try {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ role: 'user', parts: parts }]
+              })
+            });
+
+            const json = await res.json();
+            if (json.candidates && json.candidates[0]?.content?.parts) {
+              rawData = json.candidates[0].content.parts;
+              break;
+            } else if (json.error) {
+              apiError = json.error.message;
+            }
+          } catch(e) {
+            apiError = e.message;
           }
         }
 
-        clearInterval(thinkInterval);
+        clearInterval(timerInterval);
+        clearInterval(phaseInterval);
         document.getElementById('dynamic-thinking')?.remove();
-        activeChat.messages.push({ role: 'model', content: reply });
+
+        if (rawData) {
+          let extractedThoughts = "";
+          let extractedAnswer = "";
+
+          // Extract thinking parts and response code separately
+          rawData.forEach(part => {
+            if (part.thought) {
+              extractedThoughts += (part.text || "") + "\n";
+            } else if (part.text) {
+              extractedAnswer += part.text;
+            }
+          });
+
+          if (!extractedAnswer && extractedThoughts) {
+            extractedAnswer = extractedThoughts;
+            extractedThoughts = "";
+          }
+
+          activeChat.messages.push({
+            role: 'model',
+            content: extractedAnswer || "No code generated.",
+            thought: extractedThoughts.trim()
+          });
+
+        } else {
+          activeChat.messages.push({
+            role: 'model',
+            content: `⚠️ **API Error:** ${apiError || 'Failed to generate code.'}\n\nPlease verify your API key in sidebar.`,
+            thought: ""
+          });
+          if ((apiError || '').toLowerCase().includes('key')) openKeyModal();
+        }
 
       } catch (err) {
-        clearInterval(thinkInterval);
+        clearInterval(timerInterval);
+        clearInterval(phaseInterval);
         document.getElementById('dynamic-thinking')?.remove();
-        activeChat.messages.push({ role: 'model', content: "⚠️ Connection error: " + err.message });
+        activeChat.messages.push({
+          role: 'model',
+          content: "⚠️ **Network Error:** Could not connect. Please check internet connection.",
+          thought: ""
+        });
       }
 
       saveChats();
@@ -418,6 +495,11 @@
       currentChatId = chats[0].id;
       renderHistory();
       renderMessages();
+    }
+
+    // Auto-prompt key if not set
+    if (!localStorage.getItem('nexus_gemini_key')) {
+      setTimeout(openKeyModal, 600);
     }
   </script>
 </body>
