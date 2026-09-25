@@ -20,8 +20,10 @@
 
   <div id="backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 z-30 hidden md:hidden backdrop-blur-sm"></div>
 
-  <!-- Sidebar -->
-  <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 sm:w-80 bg-[#050914] border-r border-slate-800 flex flex-col transition-transform duration-300 -translate-x-full md:translate-x-0 md:static">
+  <!-- Sidebar (Gemini Pro Layout) -->
+  <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 sm:w-80 bg-[#050914] border-r border-slate-800/80 flex flex-col transition-transform duration-300 -translate-x-full md:translate-x-0 md:static">
+    
+    <!-- Top Branding -->
     <div class="p-4 border-b border-slate-800 flex items-center justify-between">
       <div class="flex items-center gap-2.5">
         <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-400 flex items-center justify-center text-sky-400">
@@ -29,31 +31,56 @@
         </div>
         <div>
           <span class="font-bold text-white text-sm">NexusCode</span>
-          <span class="text-[10px] block text-sky-400 font-mono">Gemini AI Studio</span>
+          <span class="text-[10px] block text-sky-400 font-mono">Gemini Studio Pro</span>
         </div>
       </div>
-      <button onclick="toggleSidebar()" class="md:hidden text-slate-400 p-1">
+      <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white p-1">
         <i class="fas fa-times"></i>
       </button>
     </div>
 
-    <div class="p-3">
+    <!-- New Chat & Search Deck -->
+    <div class="p-3 space-y-2">
       <button onclick="createNewChat()" class="w-full py-2.5 px-4 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 font-medium text-xs flex items-center justify-center gap-2 transition active:scale-95">
         <i class="fas fa-plus"></i> New Coding Chat
       </button>
+
+      <!-- Search Chats (Gemini Feature) -->
+      <div class="relative">
+        <i class="fas fa-search absolute left-3 top-2.5 text-xs text-slate-500"></i>
+        <input type="text" id="search-input" oninput="filterChats()" placeholder="Search chats..." class="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-200 placeholder-slate-500 outline-none focus:border-sky-500/50">
+      </div>
     </div>
 
+    <!-- Recent Section Header -->
+    <div class="px-4 pt-2 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Recent Sessions</div>
+
+    <!-- History List (Scrollable) -->
     <div class="flex-1 overflow-y-auto px-3 py-1 space-y-1 scrollbar-thin" id="history-list"></div>
 
-    <div class="p-3 border-t border-slate-800">
-      <button onclick="openKeyModal()" class="w-full py-2 px-3 bg-slate-900 border border-slate-800 rounded-lg text-xs text-sky-300 hover:bg-slate-800 transition flex items-center justify-between">
-        <span class="flex items-center gap-1.5"><i class="fas fa-key text-[11px]"></i> Configure Gemini Key</span>
-        <span id="key-indicator" class="w-2 h-2 rounded-full bg-red-400"></span>
-      </button>
+    <!-- Bottom User Profile Dock (Gemini Style) -->
+    <div class="p-3 border-t border-slate-800/80 bg-slate-950/60">
+      <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-900/80 transition cursor-pointer" onclick="openSettingsModal()">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-400 text-emerald-400 flex items-center justify-center font-bold text-xs">
+            P
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-white flex items-center gap-1.5">
+              <span>Piyush</span>
+              <span class="text-[9px] px-1 py-0.2 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30 uppercase font-mono">PRO</span>
+            </div>
+            <span class="text-[10px] text-slate-500 font-mono" id="active-model-label">Gemini 2.5 Flash</span>
+          </div>
+        </div>
+        <button class="text-slate-400 hover:text-white p-1.5">
+          <i class="fas fa-cog text-sm"></i>
+        </button>
+      </div>
     </div>
   </aside>
 
-  <!-- Main Workspace -->
+  <!-- Main Chat Workspace -->
   <main class="flex-1 flex flex-col h-[100dvh] bg-[#02050e] relative overflow-hidden">
     <header class="h-14 border-b border-slate-800 flex items-center justify-between px-4 bg-slate-950/60 backdrop-blur-md z-20">
       <div class="flex items-center gap-3">
@@ -62,12 +89,16 @@
         </button>
         <h2 id="current-chat-title" class="text-xs sm:text-sm font-semibold text-slate-200 truncate max-w-[200px] sm:max-w-md">New Session</h2>
       </div>
-      <button onclick="clearCurrentChat()" class="text-xs text-slate-400 hover:text-red-400 transition px-2.5 py-1 rounded-lg border border-slate-800">
-        <i class="fas fa-trash-alt mr-1"></i> Clear
-      </button>
+      <div class="flex items-center gap-2">
+        <button onclick="openSettingsModal()" class="text-xs text-slate-400 hover:text-sky-400 p-1.5 rounded-lg border border-slate-800">
+          <i class="fas fa-sliders-h"></i>
+        </button>
+        <button onclick="clearCurrentChat()" class="text-xs text-slate-400 hover:text-red-400 transition px-2.5 py-1 rounded-lg border border-slate-800">
+          <i class="fas fa-trash-alt mr-1"></i> Clear
+        </button>
+      </div>
     </header>
 
-    <!-- Message Arena -->
     <div id="messages-container" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 scrollbar-thin">
       <div id="welcome-state" class="h-full flex flex-col items-center justify-center text-center space-y-4 max-w-md mx-auto my-auto py-12">
         <div class="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-400/30 flex items-center justify-center text-sky-400 text-2xl">
@@ -75,7 +106,7 @@
         </div>
         <h3 class="text-lg sm:text-xl font-bold text-white">NexusCode Developer Assistant</h3>
         <p class="text-xs sm:text-sm text-slate-400">
-          Powered by Gemini 2.5 & 1.5 Flash. Real-time reasoning, deep logic explanations, and multimodal vision analysis.
+          Powered by Gemini Studio Pro. Supports reasoning trees, algorithmic calculations, and screenshot debugging.
         </p>
       </div>
     </div>
@@ -105,18 +136,93 @@
     </footer>
   </main>
 
-  <!-- Key Modal -->
-  <div id="key-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5 space-y-4">
-      <h3 class="text-sm font-bold text-white flex items-center gap-2">
-        <i class="fas fa-key text-sky-400"></i> Enter Gemini API Key
-      </h3>
-      <p class="text-xs text-slate-400">Paste your Gemini API key (starts with AIzaSy...). It will be stored safely in your browser storage.</p>
-      <input type="password" id="manual-key-input" placeholder="AIzaSy..." class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white outline-none focus:border-sky-400">
-      <div class="flex justify-end gap-2">
-        <button onclick="closeKeyModal()" class="px-3 py-1.5 text-xs text-slate-400">Cancel</button>
-        <button onclick="saveManualKey()" class="px-4 py-1.5 bg-sky-500 text-slate-950 rounded-lg text-xs font-bold">Save Key</button>
+  <!-- Comprehensive Settings & Profile Modal (Gemini Style) -->
+  <div id="settings-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-[#0b1324] border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-4 max-h-[90vh] overflow-y-auto scrollbar-thin">
+      
+      <!-- User Profile Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-400 text-emerald-400 flex items-center justify-center font-bold text-sm">
+            P
+          </div>
+          <div>
+            <div class="text-sm font-bold text-white flex items-center gap-2">
+              <span>Piyush</span>
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400 border border-sky-500/30 uppercase">PRO TIER</span>
+            </div>
+            <div class="text-xs text-slate-400 font-mono">piyushcodes.dev@gmail.com</div>
+          </div>
+        </div>
+        <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
+
+      <!-- Settings Sections -->
+      <div class="space-y-4 text-xs">
+        
+        <!-- 1. Gemini API Key Configuration -->
+        <div class="space-y-1.5">
+          <label class="text-slate-300 font-semibold flex items-center justify-between">
+            <span><i class="fas fa-key text-sky-400 mr-1"></i> Gemini API Key</span>
+            <span id="modal-key-status" class="text-[10px] text-emerald-400">Configured</span>
+          </label>
+          <input type="password" id="settings-key-input" placeholder="AIzaSy..." class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white outline-none focus:border-sky-400 font-mono">
+        </div>
+
+        <!-- 2. Model Engine Selection -->
+        <div class="space-y-1.5">
+          <label class="text-slate-300 font-semibold flex items-center gap-1.5">
+            <i class="fas fa-microchip text-sky-400"></i> AI Model Engine
+          </label>
+          <select id="model-select" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white outline-none focus:border-sky-400">
+            <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fast + Deep Thinking)</option>
+            <option value="gemini-1.5-flash">Gemini 1.5 Flash (High Stability)</option>
+          </select>
+        </div>
+
+        <!-- 3. Coding Persona (Gemini Personal Intelligence) -->
+        <div class="space-y-1.5">
+          <label class="text-slate-300 font-semibold flex items-center gap-1.5">
+            <i class="fas fa-user-gear text-sky-400"></i> Coding Response Style
+          </label>
+          <select id="persona-select" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white outline-none focus:border-sky-400">
+            <option value="balanced">Balanced (Code + Clear Logic Explanation)</option>
+            <option value="code_only">Pure Code Only (Zero chit-chat, copy ready)</option>
+            <option value="architect">Senior Architect (Deep complexity & design)</option>
+          </select>
+        </div>
+
+        <!-- 4. Memory & Storage (Export / Import Chats) -->
+        <div class="space-y-2 pt-2 border-t border-slate-800">
+          <label class="text-slate-400 font-semibold uppercase text-[10px] tracking-wider">Chat Memory & Backup</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="exportChatMemory()" class="py-2 px-3 rounded-lg bg-slate-900 border border-slate-800 hover:border-sky-500/40 text-slate-300 flex items-center justify-center gap-1.5 transition">
+              <i class="fas fa-download text-[10px] text-sky-400"></i> Backup JSON
+            </button>
+            <label class="py-2 px-3 rounded-lg bg-slate-900 border border-slate-800 hover:border-sky-500/40 text-slate-300 flex items-center justify-center gap-1.5 transition cursor-pointer">
+              <i class="fas fa-upload text-[10px] text-sky-400"></i> Restore JSON
+              <input type="file" id="import-memory-input" accept=".json" class="hidden" onchange="importChatMemory(event)">
+            </label>
+          </div>
+        </div>
+
+        <!-- 5. Clear All Data -->
+        <div class="pt-2 border-t border-slate-800">
+          <button onclick="wipeAllData()" class="w-full py-2 px-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 text-xs transition flex items-center justify-center gap-1.5">
+            <i class="fas fa-trash-alt text-[11px]"></i> Clear All 50 Chat Sessions
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+        <button onclick="closeSettingsModal()" class="px-4 py-2 text-slate-400 hover:text-white text-xs">Close</button>
+        <button onclick="saveAllSettings()" class="px-5 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs rounded-lg transition shadow-lg shadow-sky-500/20">Save Preferences</button>
+      </div>
+
     </div>
   </div>
 
@@ -131,12 +237,9 @@
     function safeMarkdown(text) {
       if (!text) return '';
       let raw = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      
-      // Code blocks with syntax copy button
       raw = raw.replace(/```([a-zA-Z0-9_\-\+\#]*)\n([\s\S]*?)```/g, function(match, lang, code) {
         return `<pre><div class="flex justify-between text-[11px] text-slate-400 border-b border-slate-800 pb-1 mb-2 font-mono"><span>${lang || 'code'}</span><button onclick="copySnippet(this)" class="hover:text-sky-400 transition flex items-center gap-1"><i class="far fa-copy text-[10px]"></i> Copy</button></div><code>${code.trim()}</code></pre>`;
       });
-
       raw = raw.replace(/`([^`]+)`/g, '<code class="bg-slate-800 text-sky-300 px-1.5 py-0.5 rounded text-xs">$1</code>');
       raw = raw.replace(/\*\*([^*]+)\*\*/g, '<strong class="text-white font-semibold">$1</strong>');
       raw = raw.replace(/^\* (.*$)/gim, '<li class="ml-4 list-disc text-slate-300">$1</li>');
@@ -173,28 +276,88 @@
       return chat;
     }
 
-    function refreshKeyStatus() {
-      const k = localStorage.getItem('nexus_gemini_key');
-      const dot = document.getElementById('key-indicator');
-      if (k && k.length > 15) dot.className = "w-2 h-2 rounded-full bg-emerald-400";
-      else dot.className = "w-2 h-2 rounded-full bg-red-400";
-    }
-
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('-translate-x-full');
       document.getElementById('backdrop').classList.toggle('hidden');
     }
 
-    function openKeyModal() {
-      document.getElementById('manual-key-input').value = localStorage.getItem('nexus_gemini_key') || '';
-      document.getElementById('key-modal').classList.remove('hidden');
+    // Modal Controls
+    function openSettingsModal() {
+      document.getElementById('settings-key-input').value = localStorage.getItem('nexus_gemini_key') || '';
+      document.getElementById('model-select').value = localStorage.getItem('nexus_model') || 'gemini-2.5-flash';
+      document.getElementById('persona-select').value = localStorage.getItem('nexus_persona') || 'balanced';
+      
+      const k = localStorage.getItem('nexus_gemini_key');
+      document.getElementById('modal-key-status').textContent = (k && k.length > 15) ? 'Connected' : 'Missing Key';
+      document.getElementById('modal-key-status').className = (k && k.length > 15) ? 'text-[10px] text-emerald-400' : 'text-[10px] text-red-400';
+
+      document.getElementById('settings-modal').classList.remove('hidden');
     }
-    function closeKeyModal() { document.getElementById('key-modal').classList.add('hidden'); }
-    function saveManualKey() {
-      const k = document.getElementById('manual-key-input').value.trim();
-      if (k) localStorage.setItem('nexus_gemini_key', k);
-      refreshKeyStatus();
-      closeKeyModal();
+
+    function closeSettingsModal() {
+      document.getElementById('settings-modal').classList.add('hidden');
+    }
+
+    function saveAllSettings() {
+      const key = document.getElementById('settings-key-input').value.trim();
+      const model = document.getElementById('model-select').value;
+      const persona = document.getElementById('persona-select').value;
+
+      if (key) localStorage.setItem('nexus_gemini_key', key);
+      localStorage.setItem('nexus_model', model);
+      localStorage.setItem('nexus_persona', persona);
+
+      document.getElementById('active-model-label').textContent = model === 'gemini-2.5-flash' ? 'Gemini 2.5 Flash' : 'Gemini 1.5 Flash';
+      closeSettingsModal();
+    }
+
+    // Search Chats Filter (Gemini Feature)
+    function filterChats() {
+      const query = document.getElementById('search-input').value.toLowerCase();
+      renderHistory(query);
+    }
+
+    // Chat Memory Export/Import
+    function exportChatMemory() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(chats, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `nexus_chats_backup_${Date.now()}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importChatMemory(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const imported = JSON.parse(evt.target.result);
+          if (Array.isArray(imported)) {
+            chats = imported;
+            saveChats();
+            currentChatId = chats[0]?.id || null;
+            renderHistory();
+            renderAllMessages();
+            alert("Memory successfully restored!");
+            closeSettingsModal();
+          }
+        } catch(err) {
+          alert("Invalid JSON format file.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function wipeAllData() {
+      if (confirm("Are you sure you want to clear all chat sessions?")) {
+        chats = [];
+        localStorage.removeItem('nexus_chats');
+        createNewChat();
+        closeSettingsModal();
+      }
     }
 
     function handleImageSelection(e) {
@@ -231,10 +394,12 @@
       }
     }
 
-    function renderHistory() {
+    function renderHistory(filter = '') {
       const list = document.getElementById('history-list');
       list.innerHTML = '';
-      chats.forEach(chat => {
+      const visibleChats = filter ? chats.filter(c => c.title.toLowerCase().includes(filter)) : chats;
+
+      visibleChats.forEach(chat => {
         const item = document.createElement('div');
         const isActive = chat.id === currentChatId;
         item.className = `group flex items-center justify-between p-2.5 rounded-xl cursor-pointer text-xs transition ${
@@ -267,15 +432,12 @@
     function deleteChat(e, id) {
       e.stopPropagation();
       chats = chats.filter(c => c.id !== id);
-      if (currentChatId === id) {
-        currentChatId = chats.length > 0 ? chats[0].id : null;
-      }
+      if (currentChatId === id) currentChatId = chats.length > 0 ? chats[0].id : null;
       saveChats();
       renderHistory();
       renderAllMessages();
     }
 
-    // Direct Message Appender (Never wipes out screen during live chat)
     function appendMessageElement(msg) {
       const container = document.getElementById('messages-container');
       const welcome = document.getElementById('welcome-state');
@@ -346,14 +508,13 @@
 
       const apiKey = (localStorage.getItem('nexus_gemini_key') || '').trim();
       if (!apiKey) {
-        openKeyModal();
+        openSettingsModal();
         return;
       }
 
       const activeChat = getActiveChat();
       const userMsg = { role: 'user', content: text, image: currentImageBase64 };
 
-      // 1. Add to state & immediately save to LocalStorage
       activeChat.messages.push(userMsg);
       if (activeChat.messages.length === 1 && text) {
         activeChat.title = text.slice(0, 26) + '...';
@@ -362,17 +523,14 @@
       }
       saveChats();
 
-      // 2. Append User Bubble directly to DOM (INSTANT VISIBILITY)
       appendMessageElement(userMsg);
 
-      // 3. Clear Input Box
       promptInput.value = '';
       promptInput.style.height = 'auto';
       let imgBase64Payload = currentImageBase64 ? currentImageBase64.split(',')[1] : null;
       let mimeTypePayload = currentMimeType;
       removeAttachedImage();
 
-      // 4. Lock state & show Thinking Bubble
       isProcessing = true;
       document.getElementById('send-icon').className = 'fas fa-spinner fa-spin text-xs';
 
@@ -400,22 +558,12 @@
         if (timerElem) timerElem.textContent = ((Date.now() - startTime) / 1000).toFixed(1) + 's';
       }, 100);
 
-      const phases = [
-        "Analyzing coding logic & dependencies...",
-        "Evaluating edge cases & complexity...",
-        "Generating optimized code..."
-      ];
-      let pIdx = 0;
-      const phaseInterval = setInterval(() => {
-        if (pIdx < phases.length) {
-          const phElem = document.getElementById('think-phase');
-          if (phElem) phElem.textContent = phases[pIdx++];
-        }
-      }, 1000);
+      // System Persona Setup
+      const persona = localStorage.getItem('nexus_persona') || 'balanced';
+      let systemInstruction = "You are NexusCode AI, an expert programming mentor and software architect. Always format code using clean markdown blocks (e.g. ```javascript, ```python).";
+      if (persona === 'code_only') systemInstruction += " Output only the code blocks and minimal required instructions.";
+      if (persona === 'architect') systemInstruction += " Give in-depth architecture evaluation, complexity analysis, and edge case coverage.";
 
-      // 5. Build conversation payload with context history (Last 6 messages)
-      const systemInstruction = "You are NexusCode AI, an expert programming mentor and software architect. Always format code using clean markdown blocks (e.g. ```javascript, ```python). Provide reasoning and step-by-step logic.";
-      
       const contentsPayload = [];
       const historyContext = activeChat.messages.slice(-6);
 
@@ -430,9 +578,7 @@
           });
         }
         let txt = m.content;
-        if (idx === 0 && m.role === 'user') {
-          txt = `${systemInstruction}\n\n${txt}`;
-        }
+        if (idx === 0 && m.role === 'user') txt = `${systemInstruction}\n\n${txt}`;
         parts.push({ text: txt });
         contentsPayload.push({
           role: m.role === 'user' ? 'user' : 'model',
@@ -440,13 +586,15 @@
         });
       });
 
+      const selectedModel = localStorage.getItem('nexus_model') || 'gemini-2.5-flash';
+      const modelsToTry = [selectedModel, selectedModel === 'gemini-2.5-flash' ? 'gemini-1.5-flash' : 'gemini-2.5-flash'];
+
       try {
-        const candidateModels = ['gemini-2.5-flash', 'gemini-1.5-flash'];
         let extractedReply = null;
         let extractedThoughts = "";
         let finalError = null;
 
-        for (const model of candidateModels) {
+        for (const model of modelsToTry) {
           try {
             const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
               method: 'POST',
@@ -458,7 +606,6 @@
             });
 
             const json = await res.json();
-
             if (json.candidates && json.candidates[0]?.content?.parts) {
               const resParts = json.candidates[0].content.parts;
               resParts.forEach(p => {
@@ -475,27 +622,21 @@
         }
 
         clearInterval(timerInterval);
-        clearInterval(phaseInterval);
         document.getElementById('live-thinking-card')?.remove();
 
         const modelMsg = {
           role: 'model',
-          content: extractedReply || extractedThoughts || `⚠️ API Error: ${finalError || 'No response returned.'}`,
+          content: extractedReply || extractedThoughts || `⚠️ Error: ${finalError || 'No response returned.'}`,
           thought: extractedReply ? extractedThoughts.trim() : ""
         };
 
-        // 6. Push Model response & save
         activeChat.messages.push(modelMsg);
         saveChats();
-
-        // 7. Directly Append AI response to DOM
         appendMessageElement(modelMsg);
 
       } catch (err) {
         clearInterval(timerInterval);
-        clearInterval(phaseInterval);
         document.getElementById('live-thinking-card')?.remove();
-
         const errorMsg = { role: 'model', content: "⚠️ Network Exception: " + err.message, thought: "" };
         activeChat.messages.push(errorMsg);
         saveChats();
@@ -525,13 +666,12 @@
       }
     });
 
-    refreshKeyStatus();
     getActiveChat();
     renderHistory();
     renderAllMessages();
 
     if (!localStorage.getItem('nexus_gemini_key')) {
-      setTimeout(openKeyModal, 400);
+      setTimeout(openSettingsModal, 400);
     }
   </script>
 </body>
