@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     const systemPrompt = "You are NexusCode AI, an expert programmer. Analyze the input, explain the logic/thinking briefly, and write clean, formatted, production-ready code with markdown tags.";
     parts.push({ text: `${systemPrompt}\n\n${prompt || "Analyze the attached image."}` });
 
-    const models = ['gemini-2.5-flash', 'gemini-1.5-flash'];
+    const models = ['gemini-2.0-flash', 'gemini-2.0-flash'];
     let resultData = null;
     let lastError = null;
 
