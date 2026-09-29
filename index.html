@@ -289,5 +289,57 @@
     </div>
   </footer>
 
+
+<script>
+  // Save & Load Personalization Preferences
+  function loadDevAISettings() {
+    try {
+      const saved = JSON.parse(localStorage.getItem('devai_user_settings') || '{}');
+      if (document.getElementById('userPlatformPref')) {
+        document.getElementById('userPlatformPref').value = saved.platform || 'mobile';
+        document.getElementById('userSkillPref').value = saved.skill || 'senior';
+        document.getElementById('userFocusPref').value = saved.focus || 'single_file';
+      }
+    } catch(e) {}
+  }
+
+  function saveDevAISettings() {
+    const settings = {
+      platform: document.getElementById('userPlatformPref')?.value || 'mobile',
+      skill: document.getElementById('userSkillPref')?.value || 'senior',
+      focus: document.getElementById('userFocusPref')?.value || 'single_file'
+    };
+    localStorage.setItem('devai_user_settings', JSON.stringify(settings));
+    alert("Settings saved successfully!");
+  }
+
+  // Intercept settings save
+  window.addEventListener('DOMContentLoaded', () => {
+    loadDevAISettings();
+    const saveBtn = document.querySelector('#settingsModal button[onclick*="save"], button#saveSettingsBtn');
+    if (saveBtn) {
+      const orig = saveBtn.getAttribute('onclick') || '';
+      saveBtn.setAttribute('onclick', 'saveDevAISettings(); ' + orig);
+    }
+  });
+
+  // Global Failover Request Helper
+  window.callDevAIFailover = async function(promptText, chatHistory = []) {
+    const saved = JSON.parse(localStorage.getItem('devai_user_settings') || '{}');
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: promptText,
+        history: chatHistory,
+        settings: saved
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Server error');
+    return data;
+  };
+</script>
+
 </body>
 </html>
