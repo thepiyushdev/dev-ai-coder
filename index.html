@@ -341,5 +341,26 @@
   };
 </script>
 
+
+<script>
+  function persistDevAIPrefs() {
+    const p = document.getElementById('userPlatformPref')?.value || 'mobile';
+    const s = document.getElementById('userSkillPref')?.value || 'senior';
+    const f = document.getElementById('userFocusPref')?.value || 'single_file';
+    localStorage.setItem('devai_user_settings', JSON.stringify({ platform: p, skill: s, focus: f }));
+  }
+  window.addEventListener('DOMContentLoaded', () => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('devai_user_settings') || '{}');
+      if (document.getElementById('userPlatformPref')) document.getElementById('userPlatformPref').value = saved.platform || 'mobile';
+      if (document.getElementById('userSkillPref')) document.getElementById('userSkillPref').value = saved.skill || 'senior';
+      if (document.getElementById('userFocusPref')) document.getElementById('userFocusPref').value = saved.focus || 'single_file';
+      document.getElementById('userPlatformPref')?.addEventListener('change', persistDevAIPrefs);
+      document.getElementById('userSkillPref')?.addEventListener('change', persistDevAIPrefs);
+      document.getElementById('userFocusPref')?.addEventListener('change', persistDevAIPrefs);
+    } catch(e) {}
+  });
+</script>
+
 </body>
 </html>
